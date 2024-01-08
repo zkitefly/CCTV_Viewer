@@ -18,6 +18,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.tencent.smtt.export.external.TbsCoreSettings;
 import com.tencent.smtt.sdk.QbSdk;
+import com.tencent.smtt.sdk.ValueCallback;
 import com.tencent.smtt.sdk.WebChromeClient;
 import com.tencent.smtt.sdk.WebSettings;
 import com.tencent.smtt.sdk.WebView;
@@ -51,6 +52,203 @@ public class MainActivity extends AppCompatActivity {
             "https://tv.cctv.com/live/cctveurope",
             "https://tv.cctv.com/live/cctvamerica/",
     };
+
+    private String backwardScript =
+            """
+            function simulate(element, eventName) {
+                var options = extend(defaultOptions, arguments[2] || {});
+                var oEvent, eventType = null;
+            
+                for (var name in eventMatchers) {
+                    if (eventMatchers[name].test(eventName)) {
+                        eventType = name;
+                        break;
+                    }
+                }
+            
+                if (!eventType) throw new SyntaxError('Only HTMLEvents and MouseEvents interfaces are supported');
+            
+                if (document.createEvent) {
+                    oEvent = document.createEvent(eventType);
+                    if (eventType == 'HTMLEvents') {
+                        oEvent.initEvent(eventName, options.bubbles, options.cancelable);
+                    } else {
+                        oEvent.initMouseEvent(eventName, options.bubbles, options.cancelable, document.defaultView, options.button, options.pointerX, options.pointerY, options.pointerX, options.pointerY, options.ctrlKey, options.altKey, options.shiftKey, options.metaKey, options.button, element);
+                    }
+                    element.dispatchEvent(oEvent);
+                } else {
+                    options.clientX = options.pointerX;
+                    options.clientY = options.pointerY;
+                    var evt = document.createEventObject();
+                    oEvent = extend(evt, options);
+                    element.fireEvent('on' + eventName, oEvent);
+                }
+                return element;
+            }
+            
+            function extend(destination, source) {
+                for (var property in source) destination[property] = source[property];
+                return destination;
+            }
+            
+            var eventMatchers = {
+                'HTMLEvents': /^(?:load|unload|abort|error|select|change|submit|reset|focus|blur|resize|scroll)$/,
+                'MouseEvents': /^(?:click|dblclick|mouse(?:down|up|over|move|out))$/
+            }
+            var defaultOptions = {
+                pointerX: 0,
+                pointerY: 0,
+                button: 0,
+                ctrlKey: false,
+                altKey: false,
+                shiftKey: false,
+                metaKey: false,
+                bubbles: true,
+                cancelable: true
+            }
+            
+            function triggerMouseEvent (node, eventType) {
+                var clickEvent = document.createEvent ('MouseEvents');
+                clickEvent.initEvent (eventType, true, true);
+                node.dispatchEvent (clickEvent);
+            };
+            
+            function mouseDragStart(node) {
+                console.log("Starting drag...");
+                console.log(node.offsetTop);
+                console.log(node.offsetLeft);
+                triggerMouseEvent(node, "mousedown")
+            }
+            
+            function mouseDragEnd(node){
+                console.log("Ending drag...");
+                const rect = node.getBoundingClientRect();
+                document.querySelector("#epg_right_shift_player").click()
+                simulate(node, "mousemove" , {pointerX: rect.x-3 , pointerY: node.offsetTop})
+                simulate(node, "mouseup" , {pointerX:  rect.x-3, pointerY: node.offsetTop})
+            }
+            function sleep1(time) {
+                time*=1000
+                return new Promise(resolve => {
+                    setTimeout(() => {
+                        resolve();
+                    }, time);
+                });
+            }
+            
+            async function playback(){
+                if(document.querySelector("#play_or_pause_play_player").style.display==="none"){
+                    document.querySelector("#play_or_plause_player").click()
+                }
+                await sleep1(3)
+                const targetElement = document.querySelector("#timeshift_pointer_player")
+                mouseDragStart(targetElement);
+                mouseDragEnd(targetElement);
+            };
+
+            playback()
+            console.log('执行了回退');
+            executeScript();
+            """;
+
+    private String forwardScript =
+            """
+            function simulate(element, eventName) {
+                var options = extend(defaultOptions, arguments[2] || {});
+                var oEvent, eventType = null;
+            
+                for (var name in eventMatchers) {
+                    if (eventMatchers[name].test(eventName)) {
+                        eventType = name;
+                        break;
+                    }
+                }
+            
+                if (!eventType) throw new SyntaxError('Only HTMLEvents and MouseEvents interfaces are supported');
+            
+                if (document.createEvent) {
+                    oEvent = document.createEvent(eventType);
+                    if (eventType == 'HTMLEvents') {
+                        oEvent.initEvent(eventName, options.bubbles, options.cancelable);
+                    } else {
+                        oEvent.initMouseEvent(eventName, options.bubbles, options.cancelable, document.defaultView, options.button, options.pointerX, options.pointerY, options.pointerX, options.pointerY, options.ctrlKey, options.altKey, options.shiftKey, options.metaKey, options.button, element);
+                    }
+                    element.dispatchEvent(oEvent);
+                } else {
+                    options.clientX = options.pointerX;
+                    options.clientY = options.pointerY;
+                    var evt = document.createEventObject();
+                    oEvent = extend(evt, options);
+                    element.fireEvent('on' + eventName, oEvent);
+                }
+                return element;
+            }
+            
+            function extend(destination, source) {
+                for (var property in source) destination[property] = source[property];
+                return destination;
+            }
+            
+            var eventMatchers = {
+                'HTMLEvents': /^(?:load|unload|abort|error|select|change|submit|reset|focus|blur|resize|scroll)$/,
+                'MouseEvents': /^(?:click|dblclick|mouse(?:down|up|over|move|out))$/
+            }
+            var defaultOptions = {
+                pointerX: 0,
+                pointerY: 0,
+                button: 0,
+                ctrlKey: false,
+                altKey: false,
+                shiftKey: false,
+                metaKey: false,
+                bubbles: true,
+                cancelable: true
+            }
+            
+            function triggerMouseEvent (node, eventType) {
+                var clickEvent = document.createEvent ('MouseEvents');
+                clickEvent.initEvent (eventType, true, true);
+                node.dispatchEvent (clickEvent);
+            };
+            
+            function mouseDragStart(node) {
+                console.log("Starting drag...");
+                console.log(node.offsetTop);
+                console.log(node.offsetLeft);
+                triggerMouseEvent(node, "mousedown")
+            }
+            
+            function mouseDragEnd(node){
+                console.log("Ending drag...");
+                const rect = node.getBoundingClientRect();
+                document.querySelector("#epg_right_shift_player").click()
+                simulate(node, "mousemove" , {pointerX: rect.x+20 , pointerY: node.offsetTop})
+                simulate(node, "mouseup" , {pointerX:  rect.x+20, pointerY: node.offsetTop})
+            }
+            function sleep1(time) {
+                time*=1000
+                return new Promise(resolve => {
+                    setTimeout(() => {
+                        resolve();
+                    }, time);
+                });
+            }
+            
+            async function playback(){
+                if(document.querySelector("#play_or_pause_play_player").style.display==="none"){
+                    document.querySelector("#play_or_plause_player").click()
+                }
+                await sleep1(3)
+                const targetElement = document.querySelector("#timeshift_pointer_player")
+                mouseDragStart(targetElement);
+                mouseDragEnd(targetElement);
+            };
+
+            playback()
+            console.log('执行了前进');
+            executeScript();
+            """;
+
 
     private String[] channelNames = {
             "CCTV-1 综合",
@@ -95,6 +293,8 @@ public class MainActivity extends AppCompatActivity {
 
     private String info = "";
 
+    private com.tencent.smtt.sdk.WebView cctvView = null;
+
 
 
     @Override
@@ -135,6 +335,22 @@ public class MainActivity extends AppCompatActivity {
         // 启用 JavaScript 自动点击功能
         webSettings.setJavaScriptCanOpenWindowsAutomatically(true);
 
+        //添加js android双向调用 必须大于api19（4.4）才可以使用
+/*        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            String jsonParams = "123456";
+            //String method = "jsMethod()";//不拼接参数，直接调用js的jsMethod函数
+            String method = "jsMethod(" + jsonParams + ")";//拼接参数，就可以把数据传递给js
+            webView.evaluateJavascript(method, new ValueCallback<String>() {
+                @Override
+                public void onReceiveValue(String value) {
+                    Log.i("qcl0228", "js返回的数据" + value);
+                }
+            });
+        }*/
+
+
+
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             webSettings.setMixedContentMode(com.tencent.smtt.sdk.WebSettings.LOAD_NORMAL);
         }
@@ -149,8 +365,8 @@ public class MainActivity extends AppCompatActivity {
             // 设置 WebViewClient，监听页面加载完成事件
             @Override
             public void onPageFinished(com.tencent.smtt.sdk.WebView view, String url) {
+                    cctvView = view;
                     // 页面加载完成后执行 JavaScript 脚本
-
                     // 清空info
                     info = "";
 
@@ -209,6 +425,8 @@ public class MainActivity extends AppCompatActivity {
                                 fullscreenBtn.click();
                                 clearInterval(interval);
                             }, 3000);
+                            
+                            
                 
                             executeScript();
                             """;
@@ -271,7 +489,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
         if (event.getAction() == KeyEvent.ACTION_DOWN) {
-            if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP || event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN || event.getKeyCode() == KeyEvent.KEYCODE_ENTER || event.getKeyCode() == KeyEvent.KEYCODE_DPAD_CENTER || event.getKeyCode() == KeyEvent.KEYCODE_MENU) {
+            if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP || event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN || event.getKeyCode() == KeyEvent.KEYCODE_DPAD_LEFT || event.getKeyCode() == KeyEvent.KEYCODE_DPAD_RIGHT || event.getKeyCode() == KeyEvent.KEYCODE_ENTER || event.getKeyCode() == KeyEvent.KEYCODE_DPAD_CENTER || event.getKeyCode() == KeyEvent.KEYCODE_MENU) {
                 if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP) {
                     // 执行上一个直播地址的操作
                     navigateToPreviousLive();
@@ -298,6 +516,12 @@ public class MainActivity extends AppCompatActivity {
                         showOverlay(channelNames[currentLiveIndex] + "\n" + info);
                     }
                     return true;  // 返回 true 表示事件已处理，不传递给 WebView
+                }else if(event.getKeyCode() == KeyEvent.KEYCODE_DPAD_LEFT){
+                    cctvView.evaluateJavascript(backwardScript, null);
+
+                }else if(event.getKeyCode() == KeyEvent.KEYCODE_DPAD_RIGHT){
+                    cctvView.evaluateJavascript(forwardScript, null);
+
                 }
                 return true;  // 返回 true 表示事件已处理，不传递给 WebView
             }else if (event.getKeyCode() >= KeyEvent.KEYCODE_0 && event.getKeyCode() <= KeyEvent.KEYCODE_9) {
