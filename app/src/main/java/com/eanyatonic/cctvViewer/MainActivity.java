@@ -119,11 +119,16 @@ public class MainActivity extends AppCompatActivity {
 
         // 加载上次保存的位置
         loadLastLiveIndex();
-
+        // 添加自动化调试
+//        if (Build.VERSION.SDK_INT >=Build.VERSION_CODES.KITKAT) {
+//            WebView.setWebContentsDebuggingEnabled(true);
+//        }
         // 配置 WebView 设置
         com.tencent.smtt.sdk.WebSettings webSettings = webView.getSettings();
         webSettings.setJavaScriptEnabled(true);
         webSettings.setDomStorageEnabled(true);
+        // 添加自动播放视频
+        webSettings.setMediaPlaybackRequiresUserGesture(false);
         webSettings.setDatabaseEnabled(true);
         webSettings.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36");
 
