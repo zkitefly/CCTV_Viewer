@@ -432,8 +432,8 @@ public class MainActivity extends AppCompatActivity {
                                                                 await sleep(50);
                                                 
                                                                 console.log('点击全屏按钮');
-                                //                                var fullscreenBtn = document.querySelector('#player_pagefullscreen_yes_player');
-                                //                                fullscreenBtn.click();
+                                                                var fullscreenBtn = document.querySelector('#player_pagefullscreen_yes_player');
+                                                                fullscreenBtn.click();
                                                                 clearInterval(interval);
                                                             }, 3000);
                                                             
