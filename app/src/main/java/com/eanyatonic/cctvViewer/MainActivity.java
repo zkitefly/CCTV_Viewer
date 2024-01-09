@@ -2,6 +2,9 @@ package com.eanyatonic.cctvViewer;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -11,12 +14,17 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.FrameLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.tencent.smtt.export.external.TbsCoreSettings;
+import com.tencent.smtt.export.external.interfaces.IX5WebChromeClient;
 import com.tencent.smtt.sdk.QbSdk;
 import com.tencent.smtt.sdk.ValueCallback;
 import com.tencent.smtt.sdk.WebChromeClient;
@@ -24,10 +32,16 @@ import com.tencent.smtt.sdk.WebSettings;
 import com.tencent.smtt.sdk.WebView;
 import com.tencent.smtt.sdk.WebViewClient;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
-
+    private RecyclerView recyclerView;
+    private View mCustomView;
+    private FrameLayout mFrameLayout;
+    private IX5WebChromeClient.CustomViewCallback mCustomViewCallback;
     private com.tencent.smtt.sdk.WebView webView; // 导入 X5 WebView
 
     private String[] liveUrls = {
@@ -55,199 +69,199 @@ public class MainActivity extends AppCompatActivity {
 
     private String backwardScript =
             """
-            function simulate(element, eventName) {
-                var options = extend(defaultOptions, arguments[2] || {});
-                var oEvent, eventType = null;
-            
-                for (var name in eventMatchers) {
-                    if (eventMatchers[name].test(eventName)) {
-                        eventType = name;
-                        break;
+                    function simulate(element, eventName) {
+                        var options = extend(defaultOptions, arguments[2] || {});
+                        var oEvent, eventType = null;
+                                
+                        for (var name in eventMatchers) {
+                            if (eventMatchers[name].test(eventName)) {
+                                eventType = name;
+                                break;
+                            }
+                        }
+                                
+                        if (!eventType) throw new SyntaxError('Only HTMLEvents and MouseEvents interfaces are supported');
+                                
+                        if (document.createEvent) {
+                            oEvent = document.createEvent(eventType);
+                            if (eventType == 'HTMLEvents') {
+                                oEvent.initEvent(eventName, options.bubbles, options.cancelable);
+                            } else {
+                                oEvent.initMouseEvent(eventName, options.bubbles, options.cancelable, document.defaultView, options.button, options.pointerX, options.pointerY, options.pointerX, options.pointerY, options.ctrlKey, options.altKey, options.shiftKey, options.metaKey, options.button, element);
+                            }
+                            element.dispatchEvent(oEvent);
+                        } else {
+                            options.clientX = options.pointerX;
+                            options.clientY = options.pointerY;
+                            var evt = document.createEventObject();
+                            oEvent = extend(evt, options);
+                            element.fireEvent('on' + eventName, oEvent);
+                        }
+                        return element;
                     }
-                }
-            
-                if (!eventType) throw new SyntaxError('Only HTMLEvents and MouseEvents interfaces are supported');
-            
-                if (document.createEvent) {
-                    oEvent = document.createEvent(eventType);
-                    if (eventType == 'HTMLEvents') {
-                        oEvent.initEvent(eventName, options.bubbles, options.cancelable);
-                    } else {
-                        oEvent.initMouseEvent(eventName, options.bubbles, options.cancelable, document.defaultView, options.button, options.pointerX, options.pointerY, options.pointerX, options.pointerY, options.ctrlKey, options.altKey, options.shiftKey, options.metaKey, options.button, element);
+                                
+                    function extend(destination, source) {
+                        for (var property in source) destination[property] = source[property];
+                        return destination;
                     }
-                    element.dispatchEvent(oEvent);
-                } else {
-                    options.clientX = options.pointerX;
-                    options.clientY = options.pointerY;
-                    var evt = document.createEventObject();
-                    oEvent = extend(evt, options);
-                    element.fireEvent('on' + eventName, oEvent);
-                }
-                return element;
-            }
-            
-            function extend(destination, source) {
-                for (var property in source) destination[property] = source[property];
-                return destination;
-            }
-            
-            var eventMatchers = {
-                'HTMLEvents': /^(?:load|unload|abort|error|select|change|submit|reset|focus|blur|resize|scroll)$/,
-                'MouseEvents': /^(?:click|dblclick|mouse(?:down|up|over|move|out))$/
-            }
-            var defaultOptions = {
-                pointerX: 0,
-                pointerY: 0,
-                button: 0,
-                ctrlKey: false,
-                altKey: false,
-                shiftKey: false,
-                metaKey: false,
-                bubbles: true,
-                cancelable: true
-            }
-            
-            function triggerMouseEvent (node, eventType) {
-                var clickEvent = document.createEvent ('MouseEvents');
-                clickEvent.initEvent (eventType, true, true);
-                node.dispatchEvent (clickEvent);
-            };
-            
-            function mouseDragStart(node) {
-                console.log("Starting drag...");
-                console.log(node.offsetTop);
-                console.log(node.offsetLeft);
-                triggerMouseEvent(node, "mousedown")
-            }
-            
-            function mouseDragEnd(node){
-                console.log("Ending drag...");
-                const rect = node.getBoundingClientRect();
-                document.querySelector("#epg_right_shift_player").click()
-                simulate(node, "mousemove" , {pointerX: rect.x-3 , pointerY: node.offsetTop})
-                simulate(node, "mouseup" , {pointerX:  rect.x-3, pointerY: node.offsetTop})
-            }
-            function sleep1(time) {
-                time*=1000
-                return new Promise(resolve => {
-                    setTimeout(() => {
-                        resolve();
-                    }, time);
-                });
-            }
-            
-            async function playback(){
-                if(document.querySelector("#play_or_pause_play_player").style.display==="none"){
-                    document.querySelector("#play_or_plause_player").click()
-                }
-                await sleep1(3)
-                const targetElement = document.querySelector("#timeshift_pointer_player")
-                mouseDragStart(targetElement);
-                mouseDragEnd(targetElement);
-            };
+                                
+                    var eventMatchers = {
+                        'HTMLEvents': /^(?:load|unload|abort|error|select|change|submit|reset|focus|blur|resize|scroll)$/,
+                        'MouseEvents': /^(?:click|dblclick|mouse(?:down|up|over|move|out))$/
+                    }
+                    var defaultOptions = {
+                        pointerX: 0,
+                        pointerY: 0,
+                        button: 0,
+                        ctrlKey: false,
+                        altKey: false,
+                        shiftKey: false,
+                        metaKey: false,
+                        bubbles: true,
+                        cancelable: true
+                    }
+                                
+                    function triggerMouseEvent (node, eventType) {
+                        var clickEvent = document.createEvent ('MouseEvents');
+                        clickEvent.initEvent (eventType, true, true);
+                        node.dispatchEvent (clickEvent);
+                    };
+                                
+                    function mouseDragStart(node) {
+                        console.log("Starting drag...");
+                        console.log(node.offsetTop);
+                        console.log(node.offsetLeft);
+                        triggerMouseEvent(node, "mousedown")
+                    }
+                                
+                    function mouseDragEnd(node){
+                        console.log("Ending drag...");
+                        const rect = node.getBoundingClientRect();
+                        document.querySelector("#epg_right_shift_player").click()
+                        simulate(node, "mousemove" , {pointerX: rect.x-3 , pointerY: node.offsetTop})
+                        simulate(node, "mouseup" , {pointerX:  rect.x-3, pointerY: node.offsetTop})
+                    }
+                    function sleep1(time) {
+                        time*=1000
+                        return new Promise(resolve => {
+                            setTimeout(() => {
+                                resolve();
+                            }, time);
+                        });
+                    }
+                                
+                    async function playback(){
+                        if(document.querySelector("#play_or_pause_play_player").style.display==="none"){
+                            document.querySelector("#play_or_plause_player").click()
+                        }
+                        await sleep1(3)
+                        const targetElement = document.querySelector("#timeshift_pointer_player")
+                        mouseDragStart(targetElement);
+                        mouseDragEnd(targetElement);
+                    };
 
-            playback()
-            console.log('执行了回退');
-            executeScript();
-            """;
+                    playback()
+                    console.log('执行了回退');
+                    executeScript();
+                    """;
 
     private String forwardScript =
             """
-            function simulate(element, eventName) {
-                var options = extend(defaultOptions, arguments[2] || {});
-                var oEvent, eventType = null;
-            
-                for (var name in eventMatchers) {
-                    if (eventMatchers[name].test(eventName)) {
-                        eventType = name;
-                        break;
+                    function simulate(element, eventName) {
+                        var options = extend(defaultOptions, arguments[2] || {});
+                        var oEvent, eventType = null;
+                                
+                        for (var name in eventMatchers) {
+                            if (eventMatchers[name].test(eventName)) {
+                                eventType = name;
+                                break;
+                            }
+                        }
+                                
+                        if (!eventType) throw new SyntaxError('Only HTMLEvents and MouseEvents interfaces are supported');
+                                
+                        if (document.createEvent) {
+                            oEvent = document.createEvent(eventType);
+                            if (eventType == 'HTMLEvents') {
+                                oEvent.initEvent(eventName, options.bubbles, options.cancelable);
+                            } else {
+                                oEvent.initMouseEvent(eventName, options.bubbles, options.cancelable, document.defaultView, options.button, options.pointerX, options.pointerY, options.pointerX, options.pointerY, options.ctrlKey, options.altKey, options.shiftKey, options.metaKey, options.button, element);
+                            }
+                            element.dispatchEvent(oEvent);
+                        } else {
+                            options.clientX = options.pointerX;
+                            options.clientY = options.pointerY;
+                            var evt = document.createEventObject();
+                            oEvent = extend(evt, options);
+                            element.fireEvent('on' + eventName, oEvent);
+                        }
+                        return element;
                     }
-                }
-            
-                if (!eventType) throw new SyntaxError('Only HTMLEvents and MouseEvents interfaces are supported');
-            
-                if (document.createEvent) {
-                    oEvent = document.createEvent(eventType);
-                    if (eventType == 'HTMLEvents') {
-                        oEvent.initEvent(eventName, options.bubbles, options.cancelable);
-                    } else {
-                        oEvent.initMouseEvent(eventName, options.bubbles, options.cancelable, document.defaultView, options.button, options.pointerX, options.pointerY, options.pointerX, options.pointerY, options.ctrlKey, options.altKey, options.shiftKey, options.metaKey, options.button, element);
+                                
+                    function extend(destination, source) {
+                        for (var property in source) destination[property] = source[property];
+                        return destination;
                     }
-                    element.dispatchEvent(oEvent);
-                } else {
-                    options.clientX = options.pointerX;
-                    options.clientY = options.pointerY;
-                    var evt = document.createEventObject();
-                    oEvent = extend(evt, options);
-                    element.fireEvent('on' + eventName, oEvent);
-                }
-                return element;
-            }
-            
-            function extend(destination, source) {
-                for (var property in source) destination[property] = source[property];
-                return destination;
-            }
-            
-            var eventMatchers = {
-                'HTMLEvents': /^(?:load|unload|abort|error|select|change|submit|reset|focus|blur|resize|scroll)$/,
-                'MouseEvents': /^(?:click|dblclick|mouse(?:down|up|over|move|out))$/
-            }
-            var defaultOptions = {
-                pointerX: 0,
-                pointerY: 0,
-                button: 0,
-                ctrlKey: false,
-                altKey: false,
-                shiftKey: false,
-                metaKey: false,
-                bubbles: true,
-                cancelable: true
-            }
-            
-            function triggerMouseEvent (node, eventType) {
-                var clickEvent = document.createEvent ('MouseEvents');
-                clickEvent.initEvent (eventType, true, true);
-                node.dispatchEvent (clickEvent);
-            };
-            
-            function mouseDragStart(node) {
-                console.log("Starting drag...");
-                console.log(node.offsetTop);
-                console.log(node.offsetLeft);
-                triggerMouseEvent(node, "mousedown")
-            }
-            
-            function mouseDragEnd(node){
-                console.log("Ending drag...");
-                const rect = node.getBoundingClientRect();
-                document.querySelector("#epg_right_shift_player").click()
-                simulate(node, "mousemove" , {pointerX: rect.x+20 , pointerY: node.offsetTop})
-                simulate(node, "mouseup" , {pointerX:  rect.x+20, pointerY: node.offsetTop})
-            }
-            function sleep1(time) {
-                time*=1000
-                return new Promise(resolve => {
-                    setTimeout(() => {
-                        resolve();
-                    }, time);
-                });
-            }
-            
-            async function playback(){
-                if(document.querySelector("#play_or_pause_play_player").style.display==="none"){
-                    document.querySelector("#play_or_plause_player").click()
-                }
-                await sleep1(3)
-                const targetElement = document.querySelector("#timeshift_pointer_player")
-                mouseDragStart(targetElement);
-                mouseDragEnd(targetElement);
-            };
+                                
+                    var eventMatchers = {
+                        'HTMLEvents': /^(?:load|unload|abort|error|select|change|submit|reset|focus|blur|resize|scroll)$/,
+                        'MouseEvents': /^(?:click|dblclick|mouse(?:down|up|over|move|out))$/
+                    }
+                    var defaultOptions = {
+                        pointerX: 0,
+                        pointerY: 0,
+                        button: 0,
+                        ctrlKey: false,
+                        altKey: false,
+                        shiftKey: false,
+                        metaKey: false,
+                        bubbles: true,
+                        cancelable: true
+                    }
+                                
+                    function triggerMouseEvent (node, eventType) {
+                        var clickEvent = document.createEvent ('MouseEvents');
+                        clickEvent.initEvent (eventType, true, true);
+                        node.dispatchEvent (clickEvent);
+                    };
+                                
+                    function mouseDragStart(node) {
+                        console.log("Starting drag...");
+                        console.log(node.offsetTop);
+                        console.log(node.offsetLeft);
+                        triggerMouseEvent(node, "mousedown")
+                    }
+                                
+                    function mouseDragEnd(node){
+                        console.log("Ending drag...");
+                        const rect = node.getBoundingClientRect();
+                        document.querySelector("#epg_right_shift_player").click()
+                        simulate(node, "mousemove" , {pointerX: rect.x+20 , pointerY: node.offsetTop})
+                        simulate(node, "mouseup" , {pointerX:  rect.x+20, pointerY: node.offsetTop})
+                    }
+                    function sleep1(time) {
+                        time*=1000
+                        return new Promise(resolve => {
+                            setTimeout(() => {
+                                resolve();
+                            }, time);
+                        });
+                    }
+                                
+                    async function playback(){
+                        if(document.querySelector("#play_or_pause_play_player").style.display==="none"){
+                            document.querySelector("#play_or_plause_player").click()
+                        }
+                        await sleep1(3)
+                        const targetElement = document.querySelector("#timeshift_pointer_player")
+                        mouseDragStart(targetElement);
+                        mouseDragEnd(targetElement);
+                    };
 
-            playback()
-            console.log('执行了前进');
-            executeScript();
-            """;
+                    playback()
+                    console.log('执行了前进');
+                    executeScript();
+                    """;
 
 
     private String[] channelNames = {
@@ -296,12 +310,11 @@ public class MainActivity extends AppCompatActivity {
     private com.tencent.smtt.sdk.WebView cctvView = null;
 
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        mFrameLayout = findViewById(R.id.flVideoContainer);
         // X5WebView初始化
         initX5WebView();
 
@@ -331,7 +344,7 @@ public class MainActivity extends AppCompatActivity {
         webSettings.setMediaPlaybackRequiresUserGesture(false);
         webSettings.setDatabaseEnabled(true);
         webSettings.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36");
-
+        webSettings.setUseWideViewPort(true);
         // 启用 JavaScript 自动点击功能
         webSettings.setJavaScriptCanOpenWindowsAutomatically(true);
 
@@ -349,8 +362,6 @@ public class MainActivity extends AppCompatActivity {
         }*/
 
 
-
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             webSettings.setMixedContentMode(com.tencent.smtt.sdk.WebSettings.LOAD_NORMAL);
         }
@@ -365,86 +376,95 @@ public class MainActivity extends AppCompatActivity {
             // 设置 WebViewClient，监听页面加载完成事件
             @Override
             public void onPageFinished(com.tencent.smtt.sdk.WebView view, String url) {
-                    cctvView = view;
-                    // 页面加载完成后执行 JavaScript 脚本
-                    // 清空info
-                    info = "";
+                cctvView = view;
+                // 页面加载完成后执行 JavaScript 脚本
+                // 清空info
+                info = "";
 
-                    // 获取节目预告和当前节目
-                    view.evaluateJavascript("document.querySelector('#jiemu > li.cur.act').innerText", value -> {
-                        // 处理获取到的元素值
-                        if (!value.equals("null") && !value.isEmpty()) {
-                            String elementValueNow = value.replace("\"", ""); // 去掉可能的引号
-                            info += elementValueNow + "\n";
-                        }
-                    });
-                    view.evaluateJavascript("document.querySelector('#jiemu > li:nth-child(4)').innerText", value -> {
-                        // 处理获取到的元素值
-                        if (!value.equals("null") && !value.isEmpty()) {
-                            String elementValueNext = value.replace("\"", ""); // 去掉可能的引号
-                            info += elementValueNext;
-                        }
-                    });
+                // 获取节目预告和当前节目
+                view.evaluateJavascript("document.querySelector('#jiemu > li.cur.act').innerText", value -> {
+                    // 处理获取到的元素值
+                    if (!value.equals("null") && !value.isEmpty()) {
+                        String elementValueNow = value.replace("\"", ""); // 去掉可能的引号
+                        info += elementValueNow + "\n";
+                    }
+                });
+                view.evaluateJavascript("document.querySelector('#jiemu > li:nth-child(4)').innerText", value -> {
+                    // 处理获取到的元素值
+                    if (!value.equals("null") && !value.isEmpty()) {
+                        String elementValueNext = value.replace("\"", ""); // 去掉可能的引号
+                        info += elementValueNext;
+                    }
+                });
 
-                    String script =
-                            """
-                            // 定义休眠函数
-                            function sleep(ms) {
-                                return new Promise(resolve => setTimeout(resolve, ms));
-                            }
-                
-                            // 页面加载完成后执行 JavaScript 脚本
-                            let interval=setInterval(async function executeScript() {
-                                console.log('页面加载完成！');
-                
-                                // 休眠 1000 毫秒（1秒）
-                                await sleep(1000);
-                
-                                // 休眠 50 毫秒
-                                await sleep(50);
-                
-                                console.log('点击分辨率按钮');
-                                var elem = document.querySelector('#resolution_item_720_player');
-                                elem.click();
-                
-                                // 休眠 50 毫秒
-                                await sleep(50);
-                
-                                console.log('设置音量并点击音量按钮');
-                                var btn = document.querySelector('#player_sound_btn_player');
-                                btn.setAttribute('volume', 100);
-                                btn.click();
-                                btn.click();
-                                btn.click();
-                
-                                // 休眠 50 毫秒
-                                await sleep(50);
-                
-                                console.log('点击全屏按钮');
-                                var fullscreenBtn = document.querySelector('#player_pagefullscreen_yes_player');
-                                fullscreenBtn.click();
-                                clearInterval(interval);
-                            }, 3000);
-                            
-                            
-                
-                            executeScript();
-                            """;
-                    view.evaluateJavascript(script, null);
+                String script =
+                        """
+                                                            // 定义休眠函数
+                                                            function sleep(ms) {
+                                                                return new Promise(resolve => setTimeout(resolve, ms));
+                                                            }
+                                                
+                                                            // 页面加载完成后执行 JavaScript 脚本
+                                                            let interval=setInterval(async function executeScript() {
+                                                                console.log('页面加载完成！');
+                                                
+                                                                // 休眠 1000 毫秒（1秒）
+                                                                await sleep(1000);
+                                                
+                                                                // 休眠 50 毫秒
+                                                                await sleep(50);
+                                                
+                                                                console.log('点击分辨率按钮');
+                                                                var elem = document.querySelector('#resolution_item_720_player');
+                                                                elem.click();
+                                                
+                                                                // 休眠 50 毫秒
+                                                                await sleep(50);
+                                                
+                                                                console.log('设置音量并点击音量按钮');
+                                                                var btn = document.querySelector('#player_sound_btn_player');
+                                                                btn.setAttribute('volume', 100);
+                                                                btn.click();
+                                                                btn.click();
+                                                                btn.click();
+                                                
+                                                                // 休眠 50 毫秒
+                                                                await sleep(50);
+                                                
+                                                                console.log('点击全屏按钮');
+                                //                                var fullscreenBtn = document.querySelector('#player_pagefullscreen_yes_player');
+                                //                                fullscreenBtn.click();
+                                                                clearInterval(interval);
+                                                            }, 3000);
+                                                            
+                                                            
+                                                
+                                                            executeScript();
+                                                            """;
+                view.evaluateJavascript(script, null);
 
-                    new Handler().postDelayed(() -> {
-                        // 模拟触摸
-                        // simulateTouch(view, 0.5f, 0.5f);
+                new Handler().postDelayed(() -> {
+                    // 模拟触摸
+                    // simulateTouch(view, 0.5f, 0.5f);
 
-                        // 隐藏加载的 View
-                        loadingOverlay.setVisibility(View.GONE);
+                    // 隐藏加载的 View
+                    loadingOverlay.setVisibility(View.GONE);
 
-                        // 显示覆盖层，传入当前频道信息
+                    // 显示覆盖层，传入当前频道信息
                         showOverlay(channelNames[currentLiveIndex] + "\n" + info);
-                    }, 5000);
-                }
-            });
+                }, 5000);
 
+                // 在 WebView 加载完成后加载 RecyclerView
+                new Handler().post(() -> {
+                    recyclerView = findViewById(R.id.recyclerView);
+                    List<Channel> channelList = createChannelList();
+                    ChannelAdapter channelAdapter = new ChannelAdapter(channelList);
+                    LinearLayoutManager linearLayoutManager = new LinearLayoutManager(MainActivity.this);
+                    recyclerView.setLayoutManager(linearLayoutManager);
+                    recyclerView.setAdapter(channelAdapter);
+                });
+            }
+        });
 
 
         // 禁用缩放
@@ -456,11 +476,56 @@ public class MainActivity extends AppCompatActivity {
         webView.setFocusable(false);
 
         // 设置 WebView 客户端
-        webView.setWebChromeClient(new WebChromeClient());
+        webView.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public void onShowCustomView(View view, IX5WebChromeClient.CustomViewCallback callback) {
+                super.onShowCustomView(view, callback);
+                if (mCustomView != null) {
+                    callback.onCustomViewHidden();
+                    return;
+                }
+                mCustomView = view;
+                mFrameLayout.addView(mCustomView);
+                mCustomViewCallback = callback;
+                webView.setVisibility(View.GONE);
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+           }
+
+            @Override
+            public void onHideCustomView() {
+                webView.setVisibility(View.VISIBLE);
+                if (mCustomView == null) {
+                    return;
+                }
+                mCustomView.setVisibility(View.GONE);
+                mFrameLayout.removeView(mCustomView);
+                mCustomViewCallback.onCustomViewHidden();
+                mCustomView = null;
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+                super.onHideCustomView();
+            }
+
+
+        });
 
         // 加载初始网页
         loadLiveUrl();
+        webView.setBackgroundColor(Color.TRANSPARENT);
+        webView.setLayoutParams(new RelativeLayout.LayoutParams(
+                RelativeLayout.LayoutParams.MATCH_PARENT,
+                RelativeLayout.LayoutParams.MATCH_PARENT));
 
+    }
+
+
+
+    private List<Channel> createChannelList() {
+        List<Channel> channels = new ArrayList<>();
+        // 添加您的频道数据
+        channels.add(new Channel("CCTV-1 综合"));
+        channels.add(new Channel("CCTV-2 财经"));
+        // 添加其他频道...
+        return channels;
     }
 
     private void initX5WebView() {
@@ -469,11 +534,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onViewInitFinished(boolean arg0) {
                 // x5內核初始化完成的回调，为true表示x5内核加载成功，否则表示x5内核加载失败，会自动切换到系统内核。
-                Log.d("X5CORE","onViewInitFinished is "+arg0);
+                Log.d("X5CORE", "onViewInitFinished is " + arg0);
             }
 
             @Override
             public void onCoreInitFinished() {
+
             }
         };
         // x5内核初始化接口
@@ -502,29 +568,17 @@ public class MainActivity extends AppCompatActivity {
                     // 执行暂停操作
                     simulateTouch(webView, 0.5f, 0.5f);
                     return true;  // 返回 true 表示事件已处理，不传递给 WebView
-                }else if (event.getKeyCode() == KeyEvent.KEYCODE_MENU) {
-                    // 根据按键重复次数判断是长按还是短按
-                    if (event.getRepeatCount() > 0) {
-                        // 执行长按菜单键操作
-                        // 刷新 WebView 页面
-                        if (webView != null) {
-                            webView.reload();
-                        }
-                    } else {
-                        // 执行短按菜单键操作
-                        // 显示节目列表
-                        showOverlay(channelNames[currentLiveIndex] + "\n" + info);
-                    }
+                } else if (event.getKeyCode() == KeyEvent.KEYCODE_MENU) {
+                    recyclerView.setVisibility(View.VISIBLE);
+                    recyclerView.requestFocus(); // 将焦点设置到 RecyclerView
                     return true;  // 返回 true 表示事件已处理，不传递给 WebView
-                }else if(event.getKeyCode() == KeyEvent.KEYCODE_DPAD_LEFT){
+                } else if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_LEFT) {
                     cctvView.evaluateJavascript(backwardScript, null);
-
-                }else if(event.getKeyCode() == KeyEvent.KEYCODE_DPAD_RIGHT){
+                } else if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_RIGHT) {
                     cctvView.evaluateJavascript(forwardScript, null);
-
                 }
                 return true;  // 返回 true 表示事件已处理，不传递给 WebView
-            }else if (event.getKeyCode() >= KeyEvent.KEYCODE_0 && event.getKeyCode() <= KeyEvent.KEYCODE_9) {
+            } else if (event.getKeyCode() >= KeyEvent.KEYCODE_0 && event.getKeyCode() <= KeyEvent.KEYCODE_9) {
                 int numericKey = event.getKeyCode() - KeyEvent.KEYCODE_0;
 
                 // 将按下的数字键追加到缓冲区
@@ -586,7 +640,7 @@ public class MainActivity extends AppCompatActivity {
     private void loadLiveUrl() {
         if (currentLiveIndex >= 0 && currentLiveIndex < liveUrls.length) {
             // 显示加载的View
-            loadingOverlay.setVisibility(View.VISIBLE);
+//            loadingOverlay.setVisibility(View.VISIBLE);
 
             webView.setInitialScale(getMinimumScale());
             webView.loadUrl(liveUrls[currentLiveIndex]);
@@ -638,7 +692,10 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        if (doubleBackToExitPressedOnce) {
+        if (recyclerView.getVisibility() == View.VISIBLE) {
+            // 如果 RecyclerView 可见，按下返回键时隐藏它
+            recyclerView.setVisibility(View.GONE);
+        } else if (doubleBackToExitPressedOnce) {
             super.onBackPressed();
             return;
         }
