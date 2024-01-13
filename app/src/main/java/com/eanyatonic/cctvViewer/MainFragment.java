@@ -136,14 +136,8 @@ public class MainFragment extends BrowseSupportFragment {
     }
 
     private void setupEventListeners() {
-        setOnSearchClickedListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View view) {
-                Toast.makeText(getActivity(), "Implement your own in-app search", Toast.LENGTH_LONG)
-                        .show();
-            }
-        });
+        setOnSearchClickedListener(view ->
+                Toast.makeText(getActivity(), "Implement your own in-app search", Toast.LENGTH_LONG).show());
 
         setOnItemViewClickedListener(new ItemViewClickedListener());
         setOnItemViewSelectedListener(new ItemViewSelectedListener());
