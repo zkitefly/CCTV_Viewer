@@ -16,7 +16,7 @@ import com.eanyatonic.cctvViewer.bean.EpgInfo;
 import java.util.List;
 
 public class ChannelAdapter extends RecyclerView.Adapter<ChannelAdapter.ChannelViewHolder> {
-    private int selectedItem = -1; // 用于跟踪选中的项
+    private int selectedItem = 0; // 用于跟踪选中的项
 
     private List<EpgInfo> channelList;
     private OnItemClickListener onItemClickListener;
@@ -48,11 +48,12 @@ public class ChannelAdapter extends RecyclerView.Adapter<ChannelAdapter.ChannelV
             holder.channelNameTextView.setBackgroundResource(R.drawable.channel_background_selected);
             holder.channelNameTextView.setTextColor(ContextCompat.getColor(holder.itemView.getContext(), R.color.text_color));
         }
+        recyclerView.requestFocus(); // 将焦点设置到 RecyclerView
+
         EpgInfo channel = channelList.get(position);
         holder.bind(channel);
         Log.d("ChannelAdapterxx", "Bound channel: " + channel.getName());
         holder.channelNameTextView.setOnKeyListener((v, keyCode, event) -> {
-            notifyDataSetChanged();
             int action = event.getAction();
             if (event.getAction() == KeyEvent.ACTION_DOWN){
                 switch (keyCode) {
@@ -82,6 +83,7 @@ public class ChannelAdapter extends RecyclerView.Adapter<ChannelAdapter.ChannelV
                                 + "document.querySelector('#" + epgInfo.getId() + "')" + ".click();"+"}"+"xx()"
                                 , null);
                         return true;
+
                 }
             }
 

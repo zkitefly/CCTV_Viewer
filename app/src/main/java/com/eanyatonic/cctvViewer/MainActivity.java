@@ -473,6 +473,8 @@ public class MainActivity extends AppCompatActivity implements ChannelAdapter.On
                         }
                         
                         async function playback(offset){
+                            document.querySelector('#play_or_plause_player').click();
+                            await sleep(500);
                             const targetElement = document.querySelector("#timeshift_pointer_player")
                             const xy = document.querySelector("#timeshift_pointer_player").getClientRects()[0]
                             console.log(xy)
@@ -484,7 +486,10 @@ public class MainActivity extends AppCompatActivity implements ChannelAdapter.On
 
 
         Log.d("recyclerView.hasFocus()",recyclerView.hasFocus()+"xxx");
+        Log.d("recyclerView.hasFocus()",webView.hasFocus()+"xxx");
+
         if (!recyclerView.hasFocus()&&event.getAction() == KeyEvent.ACTION_DOWN) {
+            channelAdapter.notifyDataSetChanged();
             Log.d("ACTION_DOWN","ACTION进入了");
             if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP || event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN || event.getKeyCode() == KeyEvent.KEYCODE_DPAD_LEFT || event.getKeyCode() == KeyEvent.KEYCODE_DPAD_RIGHT || event.getKeyCode() == KeyEvent.KEYCODE_ENTER || event.getKeyCode() == KeyEvent.KEYCODE_DPAD_CENTER || event.getKeyCode() == KeyEvent.KEYCODE_MENU) {
                 if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP) {
@@ -514,7 +519,6 @@ public class MainActivity extends AppCompatActivity implements ChannelAdapter.On
                             """,null);
                 } else if (event.getKeyCode() == KeyEvent.KEYCODE_MENU) {
                     recyclerView.setVisibility(View.VISIBLE);
-                    recyclerView.requestFocus(); // 将焦点设置到 RecyclerView
                     return false;  // 返回 true 表示事件已处理，不传递给 WebView
                 }
                 return true;  // 返回 true 表示事件已处理，不传递给 WebView
