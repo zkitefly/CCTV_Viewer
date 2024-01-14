@@ -45,7 +45,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
-public class MainActivity extends AppCompatActivity implements ChannelAdapter.OnItemClickListener,ChannelAdapter.OnFocusChangeListener{
+public class MainActivity extends AppCompatActivity implements ChannelAdapter.OnItemClickListener{
 
     public FileTool filetool;
     private RecyclerView recyclerView;
@@ -300,9 +300,9 @@ public class MainActivity extends AppCompatActivity implements ChannelAdapter.On
 
                     // 隐藏加载的 View
                     loadingOverlay.setVisibility(View.GONE);
-
                     // 显示覆盖层，传入当前频道信息
                     showOverlay(channelNames[currentLiveIndex] + "\n" + info);
+                    channelAdapter.notifyDataSetChanged();
                 }, 5000);
             }
         });
@@ -357,10 +357,12 @@ public class MainActivity extends AppCompatActivity implements ChannelAdapter.On
                 RelativeLayout.LayoutParams.MATCH_PARENT));
 
         recyclerView = findViewById(R.id.recyclerView);
-        channelAdapter = new ChannelAdapter(epgList,MainActivity.this,MainActivity.this,recyclerView,webView);
+
+        channelAdapter = new ChannelAdapter(epgList,MainActivity.this,recyclerView,webView);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(MainActivity.this);
         recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.setAdapter(channelAdapter);
+        channelAdapter.notifyDataSetChanged();
 
     }
 
@@ -485,11 +487,8 @@ public class MainActivity extends AppCompatActivity implements ChannelAdapter.On
                 ,null);
 
 
-        Log.d("recyclerView.hasFocus()",recyclerView.hasFocus()+"xxx");
-        Log.d("recyclerView.hasFocus()",webView.hasFocus()+"xxx");
 
         if (!recyclerView.hasFocus()&&event.getAction() == KeyEvent.ACTION_DOWN) {
-            channelAdapter.notifyDataSetChanged();
             Log.d("ACTION_DOWN","ACTION进入了");
             if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP || event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN || event.getKeyCode() == KeyEvent.KEYCODE_DPAD_LEFT || event.getKeyCode() == KeyEvent.KEYCODE_DPAD_RIGHT || event.getKeyCode() == KeyEvent.KEYCODE_ENTER || event.getKeyCode() == KeyEvent.KEYCODE_DPAD_CENTER || event.getKeyCode() == KeyEvent.KEYCODE_MENU) {
                 if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP) {
@@ -510,15 +509,16 @@ public class MainActivity extends AppCompatActivity implements ChannelAdapter.On
                                 {playback(-30);}
                                """
                     ,null);
-
-
+                    return true;
                 } else if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_RIGHT) {
                     cctvFinishedView.evaluateJavascript(
                            """
                                {playback(60);}
                             """,null);
+                    return true;
                 } else if (event.getKeyCode() == KeyEvent.KEYCODE_MENU) {
                     recyclerView.setVisibility(View.VISIBLE);
+                    recyclerView.requestFocus();
                     return false;  // 返回 true 表示事件已处理，不传递给 WebView
                 }
                 return true;  // 返回 true 表示事件已处理，不传递给 WebView
@@ -638,6 +638,7 @@ public class MainActivity extends AppCompatActivity implements ChannelAdapter.On
     public void onBackPressed() {
         if (recyclerView.getVisibility() == View.VISIBLE) {
             recyclerView.setVisibility(View.GONE);
+            recyclerView.clearFocus();
         } else {
             if (doubleBackToExitPressedOnce) {
                 super.onBackPressed();
@@ -685,16 +686,8 @@ public class MainActivity extends AppCompatActivity implements ChannelAdapter.On
     }
 
 
-    @Override
-    public void onFocusChangeListener(View view, boolean hasFocus) {
-        Log.d("onFocusChangeListener", hasFocus + "xxxxxxx");
-//        if (hasFocus){
-//            EpgInfo channel = epgList.get(position);
-//            cctvFinishedView.evaluateJavascript("document.querySelector('#" + channel.getId() + "')" + ".click()", null);
-//        }
-//        cctvFinishedView.evaluateJavascript("document.querySelector('#" + channel.getId() + "')" + ".click()", null);
 
-    }
+
 }
 
 

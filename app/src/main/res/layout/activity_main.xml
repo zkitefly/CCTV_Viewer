@@ -11,19 +11,17 @@
         android:id="@+id/webView"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-        <androidx.recyclerview.widget.RecyclerView
-            android:gravity="center"
-            android:id="@+id/recyclerView"
-            android:layout_centerInParent="true"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_below="@id/webView"
-            android:layout_marginTop="16dp"
-            android:background="#80292828"
-            android:focusable="true"
-            android:clickable="true"
-            android:visibility="gone" />
-        <!-- 添加 RecyclerView -->
+        <LinearLayout android:layout_height="match_parent" android:layout_width="match_parent">
+            <androidx.recyclerview.widget.RecyclerView
+                android:gravity="center"
+                android:id="@+id/recyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#80292828"
+                android:focusable="true"
+                android:clickable="true"
+                android:visibility="gone" />
+        </LinearLayout>
     </com.tencent.smtt.sdk.WebView>
 
     <FrameLayout
