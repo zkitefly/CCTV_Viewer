@@ -6,9 +6,11 @@
     android:layout_height="wrap_content"
     android:padding="18dp"
     android:textColor="@color/text_color"
-    android:focusableInTouchMode="true"
     android:layout_marginStart="16dp"
     android:layout_marginEnd="16dp"
     android:paddingStart="16dp"
     android:paddingEnd="16dp"
+    android:focusable="true"
+    android:clickable="true"
+    android:focusableInTouchMode="true"
     android:textSize="18sp"/>

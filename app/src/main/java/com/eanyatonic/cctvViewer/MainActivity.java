@@ -159,10 +159,10 @@ public class MainActivity extends AppCompatActivity implements ChannelAdapter.On
         // 加载上次保存的位置
         loadLastLiveIndex();
         // 添加自动化调试
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            WebView.setWebContentsDebuggingEnabled(true);
-            Log.d("remote debug", "远程调试");
-        }
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+//            WebView.setWebContentsDebuggingEnabled(true);
+//            Log.d("remote debug", "远程调试");
+//        }
         // 配置 WebView 设置
 //        filetool = new FileTool(this);
 //        String backwardScript =filetool.readFileContent("js/backwardScript.js");

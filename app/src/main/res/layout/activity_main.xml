@@ -20,6 +20,7 @@
                 android:background="#80292828"
                 android:focusable="true"
                 android:clickable="true"
+                android:focusableInTouchMode="true"
                 android:visibility="gone" />
         </LinearLayout>
     </com.tencent.smtt.sdk.WebView>
