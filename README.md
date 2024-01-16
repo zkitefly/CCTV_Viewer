@@ -7,9 +7,16 @@ https://github.com/Zcodeoooo/CCTV_Viewer/releases/
 
 已更新功能
     ![img.png](img.png)
-    今日节目单切换,直播进度后退前进,安卓webview全屏适配,硬件加速
+    今日节目单切换,直播进度后退前进,目前发现问题是cctv特定频道有版权限制,则没有
 
 
+计划更新
+    由于目前精力有限,无法支持对于指定播放地址的模块化协作脚本定制化开发
+    下版本计划添加
+    央视频
+    频道选择
+
+最后感谢chatgpt的大力支持,让我3天学会Android入门
 
 ## 目前可看频道 
 CCTV-1 综合
