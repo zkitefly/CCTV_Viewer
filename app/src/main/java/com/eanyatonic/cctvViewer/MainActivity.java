@@ -45,7 +45,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
-public class MainActivity extends AppCompatActivity implements ChannelAdapter.OnItemClickListener{
+public class MainActivity extends AppCompatActivity{
 
     public FileTool filetool;
     private RecyclerView recyclerView;
@@ -302,7 +302,7 @@ public class MainActivity extends AppCompatActivity implements ChannelAdapter.On
                     loadingOverlay.setVisibility(View.GONE);
                     // 显示覆盖层，传入当前频道信息
                     showOverlay(channelNames[currentLiveIndex] + "\n" + info);
-                    channelAdapter.notifyDataSetChanged();
+//                    channelAdapter.notifyDataSetChanged();
                 }, 5000);
             }
         });
@@ -357,12 +357,13 @@ public class MainActivity extends AppCompatActivity implements ChannelAdapter.On
                 RelativeLayout.LayoutParams.MATCH_PARENT));
 
         recyclerView = findViewById(R.id.recyclerView);
-
-        channelAdapter = new ChannelAdapter(epgList,MainActivity.this,recyclerView,webView);
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(MainActivity.this);
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(MainActivity.this,LinearLayoutManager.VERTICAL,false);
         recyclerView.setLayoutManager(linearLayoutManager);
+        recyclerView.setItemAnimator(null);
+        channelAdapter = new ChannelAdapter(epgList,recyclerView,webView);
+
         recyclerView.setAdapter(channelAdapter);
-        channelAdapter.notifyDataSetChanged();
+//        channelAdapter.notifyDataSetChanged();
 
     }
 
@@ -488,7 +489,8 @@ public class MainActivity extends AppCompatActivity implements ChannelAdapter.On
 
 
 
-        if (!recyclerView.hasFocus()&&event.getAction() == KeyEvent.ACTION_DOWN) {
+        Log.d("recyclerView.hasFocus",recyclerView.hasFocus()+"recyclerView.hasFocus()");
+        if (!recyclerView.hasFocus()) {
             Log.d("ACTION_DOWN","ACTION进入了");
             if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP || event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN || event.getKeyCode() == KeyEvent.KEYCODE_DPAD_LEFT || event.getKeyCode() == KeyEvent.KEYCODE_DPAD_RIGHT || event.getKeyCode() == KeyEvent.KEYCODE_ENTER || event.getKeyCode() == KeyEvent.KEYCODE_DPAD_CENTER || event.getKeyCode() == KeyEvent.KEYCODE_MENU) {
                 if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP) {
@@ -675,15 +677,15 @@ public class MainActivity extends AppCompatActivity implements ChannelAdapter.On
     }
 
 
-    @Override
-    public void onItemClick(View view, int position) {
-        Log.d("onItemClick", position + "xxxxxxx");
-        EpgInfo channel = epgList.get(position);
-        Log.d("cctvFinishedView",cctvFinishedView.toString());
-        cctvFinishedView.evaluateJavascript("async function xx(){document.querySelector('#play_or_plause_player').click();await sleep(3000);"
-                        + "document.querySelector('#" + channel.getId() + "')" + ".click();"+"}"+"xx()"
-                , null);
-    }
+//    @Override
+//    public void onItemClick(View view, int position) {
+//        Log.d("onItemClick", position + "xxxxxxx");
+//        EpgInfo channel = epgList.get(position);
+//        Log.d("cctvFinishedView",cctvFinishedView.toString());
+//        cctvFinishedView.evaluateJavascript("async function xx(){document.querySelector('#play_or_plause_player').click();await sleep(3000);"
+//                        + "document.querySelector('#" + channel.getId() + "')" + ".click();"+"}"+"xx()"
+//                , null);
+//    }
 
 
 
