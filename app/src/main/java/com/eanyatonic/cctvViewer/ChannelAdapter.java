@@ -92,6 +92,14 @@ public class ChannelAdapter extends RecyclerView.Adapter<ChannelAdapter.ChannelV
 //                return false;
 //            });
 
+            channelNameTextView.setOnClickListener(v -> {
+                EpgInfo epgInfo = channelList.get(recyclerView.getLayoutManager().getPosition(v));
+                Log.d(epgInfo.getName(), epgInfo.getName() + "xxx");
+                view.evaluateJavascript("async function xx(){document.querySelector('#play_or_plause_player').click();await sleep(3000);"
+                                + "document.querySelector('#" + epgInfo.getId() + "')" + ".click();" + "}" + "xx()"
+                        , null);
+            });
+
 
             channelNameTextView.setOnFocusChangeListener((v, hasFocus) -> {
                 if (hasFocus) {
