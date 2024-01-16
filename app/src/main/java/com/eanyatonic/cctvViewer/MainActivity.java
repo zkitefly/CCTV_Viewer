@@ -54,7 +54,6 @@ public class MainActivity extends AppCompatActivity{
     private IX5WebChromeClient.CustomViewCallback mCustomViewCallback;
     private com.tencent.smtt.sdk.WebView webView; // 导入 X5 WebView
     private com.tencent.smtt.sdk.WebView cctvFinishedView;
-    private ChannelAdapter.ChannelViewHolder viewHolder;
 
     private ChannelAdapter channelAdapter;
     private final String[] liveUrls = {
@@ -302,7 +301,7 @@ public class MainActivity extends AppCompatActivity{
                     loadingOverlay.setVisibility(View.GONE);
                     // 显示覆盖层，传入当前频道信息
                     showOverlay(channelNames[currentLiveIndex] + "\n" + info);
-//                    channelAdapter.notifyDataSetChanged();
+                    channelAdapter.notifyDataSetChanged();
                 }, 5000);
             }
         });
@@ -361,9 +360,7 @@ public class MainActivity extends AppCompatActivity{
         recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.setItemAnimator(null);
         channelAdapter = new ChannelAdapter(epgList,recyclerView,webView);
-
         recyclerView.setAdapter(channelAdapter);
-//        channelAdapter.notifyDataSetChanged();
 
     }
 
@@ -490,7 +487,7 @@ public class MainActivity extends AppCompatActivity{
 
 
         Log.d("recyclerView.hasFocus",recyclerView.hasFocus()+"recyclerView.hasFocus()");
-        if (!recyclerView.hasFocus()) {
+        if (!recyclerView.hasFocus()&&event.getAction() == KeyEvent.ACTION_DOWN) {
             Log.d("ACTION_DOWN","ACTION进入了");
             if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP || event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN || event.getKeyCode() == KeyEvent.KEYCODE_DPAD_LEFT || event.getKeyCode() == KeyEvent.KEYCODE_DPAD_RIGHT || event.getKeyCode() == KeyEvent.KEYCODE_ENTER || event.getKeyCode() == KeyEvent.KEYCODE_DPAD_CENTER || event.getKeyCode() == KeyEvent.KEYCODE_MENU) {
                 if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP) {
