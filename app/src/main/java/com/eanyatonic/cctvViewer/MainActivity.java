@@ -302,6 +302,7 @@ public class MainActivity extends AppCompatActivity{
                     // 显示覆盖层，传入当前频道信息
                     showOverlay(channelNames[currentLiveIndex] + "\n" + info);
                     channelAdapter.notifyDataSetChanged();
+
                 }, 5000);
             }
         });
@@ -637,7 +638,6 @@ public class MainActivity extends AppCompatActivity{
     public void onBackPressed() {
         if (recyclerView.getVisibility() == View.VISIBLE) {
             recyclerView.setVisibility(View.GONE);
-            recyclerView.clearFocus();
         } else {
             if (doubleBackToExitPressedOnce) {
                 super.onBackPressed();

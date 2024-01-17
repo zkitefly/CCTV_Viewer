@@ -71,7 +71,7 @@ public class ChannelAdapter extends RecyclerView.Adapter<ChannelAdapter.ChannelV
         public ChannelViewHolder(View itemView) {
             super(itemView);
             channelNameTextView = itemView.findViewById(R.id.channelNameTextView);
-
+            recyclerView.requestFocus();
 //            channelNameTextView.setOnKeyListener((v, keyCode, event) -> {
 //                switch (keyCode) {
 //                    case KeyEvent.KEYCODE_ENTER:
