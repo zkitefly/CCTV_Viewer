@@ -27,6 +27,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.eanyatonic.cctvViewer.bean.EpgInfo;
 import com.eanyatonic.cctvViewer.tools.FileTool;
+import com.eanyatonic.cctvViewer.tools.FileUtils;
+import com.eanyatonic.cctvViewer.tools.RestartAppUtil;
+import com.eanyatonic.cctvViewer.tools.SysTool;
 import com.tencent.smtt.export.external.TbsCoreSettings;
 import com.tencent.smtt.export.external.interfaces.IX5WebChromeClient;
 import com.tencent.smtt.export.external.interfaces.SslError;
@@ -55,6 +58,7 @@ public class MainActivity extends AppCompatActivity{
     private com.tencent.smtt.sdk.WebView webView; // 导入 X5 WebView
     private com.tencent.smtt.sdk.WebView cctvFinishedView;
 
+    private String aach;
     private ChannelAdapter channelAdapter;
     private final String[] liveUrls = {
             "https://tv.cctv.com/live/cctv1/",
@@ -292,18 +296,13 @@ public class MainActivity extends AppCompatActivity{
                         """, null);
 
                 cctvFinishedView = view;
-
                 new Handler().postDelayed(() -> {
-                    // 模拟触摸
-                    // simulateTouch(view, 0.5f, 0.5f);
-
-                    // 隐藏加载的 View
                     loadingOverlay.setVisibility(View.GONE);
-                    // 显示覆盖层，传入当前频道信息
                     showOverlay(channelNames[currentLiveIndex] + "\n" + info);
                     channelAdapter.notifyDataSetChanged();
+                    Toast.makeText(MainActivity.this,"x5内核状态"+QbSdk.canLoadX5(getApplicationContext())+"内核架构"+ SysTool.showSysAach()+"  如果x5内核状态为true,无法播放请重启应用",Toast.LENGTH_SHORT).show();
+                }, 3000);
 
-                }, 5000);
             }
         });
         // 设置 WebView 客户端
@@ -368,28 +367,47 @@ public class MainActivity extends AppCompatActivity{
 
     private void initX5WebView() {
         // 搜集本地tbs内核信息并上报服务器，服务器返回结果决定使用哪个内核。
-        QbSdk.PreInitCallback cb = new QbSdk.PreInitCallback() {
-            @Override
-            public void onViewInitFinished(boolean arg0) {
-                // x5內核初始化完成的回调，为true表示x5内核加载成功，否则表示x5内核加载失败，会自动切换到系统内核。
-                Log.d("X5CORE", "onViewInitFinished is " + arg0);
-            }
-
-            @Override
-            public void onCoreInitFinished() {
-
-            }
-        };
-        // x5内核初始化接口
-        QbSdk.initX5Environment(this, cb);
+//        QbSdk.PreInitCallback cb = new QbSdk.PreInitCallback() {
+//            @Override
+//            public void onViewInitFinished(boolean arg0) {
+//                // x5內核初始化完成的回调，为true表示x5内核加载成功，否则表示x5内核加载失败，会自动切换到系统内核。
+//                Log.d("X5CORE", "onViewInitFinished is " + arg0);
+//            }
+//
+//            @Override
+//            public void onCoreInitFinished() {
+//
+//            }
+//        };
+//        // x5内核初始化接口
+//        QbSdk.initX5Environment(this, cb);
 
         // 在调用TBS初始化、创建WebView之前进行如下配置2
-        HashMap map = new HashMap();
+        boolean canLoadX5 = QbSdk.canLoadX5(getApplicationContext());
+        if (!canLoadX5) {
+            tbsInstall();
+        }
+
+    }
+
+    private void tbsInstall(){
+        HashMap<String, Object> map = new HashMap<>(2);
         map.put(TbsCoreSettings.TBS_SETTINGS_USE_SPEEDY_CLASSLOADER, true);
         map.put(TbsCoreSettings.TBS_SETTINGS_USE_DEXLOADER_SERVICE, true);
         QbSdk.initTbsSettings(map);
-    }
+        aach = SysTool.showSysAach();
+        if (aach.contains("arm64")){
+            FileUtils.copyAssets(getApplicationContext(), "046279_arm64v8a_x5.tbs.apk", FileUtils.getTBSFileDir(getApplicationContext()).getPath() + "/046279_arm64v8a_x5.tbs.apk");
+            QbSdk.reset(getApplicationContext());
+            QbSdk.installLocalTbsCore(getApplicationContext(), 46279, FileUtils.getTBSFileDir(getApplicationContext()).getPath() + "/046279_arm64v8a_x5.tbs.apk");
+        }else if (aach.contains("armeabi")){
+            FileUtils.copyAssets(getApplicationContext(), "046914_armeabi_x5.tbs.apk", FileUtils.getTBSFileDir(getApplicationContext()).getPath() + "/046914_armeabi_x5.tbs.apk");
+            QbSdk.reset(getApplicationContext());
+            QbSdk.installLocalTbsCore(getApplicationContext(), 46914, FileUtils.getTBSFileDir(getApplicationContext()).getPath() + "/046914_armeabi_x5.tbs.apk");
+        }
 
+        Log.e("canloadX5", "canLoadX5: " + QbSdk.canLoadX5(getApplicationContext()) + "|TbsVersion:" + QbSdk.getTbsVersion(getApplicationContext()));
+    }
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
@@ -661,7 +679,7 @@ public class MainActivity extends AppCompatActivity{
         // 使用 Handler 延时隐藏覆盖层
         new Handler().postDelayed(() -> {
             findViewById(R.id.overlayTextView).setVisibility(View.GONE);
-        }, 8000);
+        }, 3000);
     }
 
     @Override
