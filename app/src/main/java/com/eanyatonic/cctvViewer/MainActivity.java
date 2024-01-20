@@ -405,10 +405,10 @@ public class MainActivity extends AppCompatActivity {
                                     var cur;
                                     if(document.querySelector('.tv-main-con-r-list-left-imgb.tvSelect')===null){
                                         // cctv频道当前频道查询
-                                       cur = document.querySelector(".tv-main-con-r-list-left-imga.tvSelect").innerText
+                                       cur = document.querySelector(".tv-main-con-r-list-left-imga.tvSelect").innerText.replace(/[\\s\\n]/g, '')
                                     }else{
                                        // 地方频道当前频道查询
-                                       cur = document.querySelector('.tv-main-con-r-list-left-imgb.tvSelect').innerText
+                                       cur = document.querySelector('.tv-main-con-r-list-left-imgb.tvSelect').innerText.replace(/[\\s\\n]/g, '')
                                     }
                                     console.log(cur)
                                     bridge.setYanShiPingCurrentChannel(cur)
@@ -833,8 +833,9 @@ public class MainActivity extends AppCompatActivity {
         if (yanShiPingCurrentChannel!=null&&epgYSPList!=null&&epgYSPList.size()>0){
             for (int i = 0; i < epgYSPList.size(); i++) {
                 if (yanShiPingCurrentChannel.equals(epgYSPList.get(i).getName())){
-                    Log.d("epgYSPList",epgYSPList.get(i-1).getId());
                     cctvFinishedView.evaluateJavascript(epgYSPList.get(i-1).getId(),null);
+                    currentLiveIndex = getCCTVTailOffset() + i-1;
+                    saveCurrentLiveIndex(); // 保存当前位置
                 }
             }
         }
@@ -848,8 +849,9 @@ public class MainActivity extends AppCompatActivity {
         if (yanShiPingCurrentChannel!=null&&epgYSPList!=null&&epgYSPList.size()>0){
             for (int i = 0; i < epgYSPList.size(); i++) {
                 if (yanShiPingCurrentChannel.equals(epgYSPList.get(i).getName())){
-                    Log.d("epgYSPList",epgYSPList.get(i+1).getId());
-                    cctvFinishedView.evaluateJavascript(epgYSPList.get(i-1).getId(),null);
+                    cctvFinishedView.evaluateJavascript(epgYSPList.get(i+1).getId(),null);
+                    currentLiveIndex = getCCTVTailOffset() + i+1;
+                    saveCurrentLiveIndex(); // 保存当前位置
                 }
             }
         }
