@@ -30,7 +30,6 @@ public class ChannelAdapter extends RecyclerView.Adapter<ChannelAdapter.ChannelV
     @Override
     public ChannelViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_channel, parent, false);
-        Log.d("onCreateViewHolder", "onCreateViewHolder");
         return new ChannelViewHolder(view);
     }
 
@@ -51,18 +50,6 @@ public class ChannelAdapter extends RecyclerView.Adapter<ChannelAdapter.ChannelV
 
 
 
-    private int getCurrentFocusPosition() {
-        // 获取当前焦点位置
-        RecyclerView.LayoutManager layoutManager = recyclerView.getLayoutManager();
-        if (layoutManager instanceof LinearLayoutManager) {
-            return ((LinearLayoutManager) layoutManager).findFirstVisibleItemPosition();
-        } else {
-            // 如果使用其他布局管理器，根据需要进行适配
-            return 0;
-        }
-    }
-
-
     public class ChannelViewHolder extends RecyclerView.ViewHolder {
         public TextView channelNameTextView;
         public Integer pos = 0;
@@ -72,26 +59,6 @@ public class ChannelAdapter extends RecyclerView.Adapter<ChannelAdapter.ChannelV
             super(itemView);
             channelNameTextView = itemView.findViewById(R.id.channelNameTextView);
             recyclerView.requestFocus();
-//            channelNameTextView.setOnKeyListener((v, keyCode, event) -> {
-//                switch (keyCode) {
-//                    case KeyEvent.KEYCODE_ENTER:
-//                        EpgInfo epgInfo = channelList.get(recyclerView.getLayoutManager().getPosition(v));
-//                        Log.d(epgInfo.getName(), epgInfo.getName() + "xxx");
-//                        view.evaluateJavascript("async function xx(){document.querySelector('#play_or_plause_player').click();await sleep(3000);"
-//                                        + "document.querySelector('#" + epgInfo.getId() + "')" + ".click();" + "}" + "xx()"
-//                                , null);
-//                        return true;
-//                    case KeyEvent.ACTION_UP:
-//                        moveFocusUp();
-//                        return true;
-//                    case KeyEvent.ACTION_DOWN:
-//                        moveFocusDown();
-//                        return true;
-//                }
-//
-//                return false;
-//            });
-
             channelNameTextView.setOnClickListener(v -> {
                 EpgInfo epgInfo = channelList.get(recyclerView.getLayoutManager().getPosition(v));
                 Log.d(epgInfo.getName(), epgInfo.getName() + "xxx");
@@ -104,7 +71,6 @@ public class ChannelAdapter extends RecyclerView.Adapter<ChannelAdapter.ChannelV
             channelNameTextView.setOnFocusChangeListener((v, hasFocus) -> {
                 if (hasFocus) {
                     int position = recyclerView.getLayoutManager().getPosition(v);
-                    Log.d("xxxx","xxxx"+position);
                     if (pos>=position){
                         pos = position;
                         recyclerView.scrollToPosition(position-1);
@@ -128,31 +94,6 @@ public class ChannelAdapter extends RecyclerView.Adapter<ChannelAdapter.ChannelV
 
     }
 
-
-    private void moveFocusUp() {
-
-        // 获取当前焦点位置
-        int currentPos = getCurrentFocusPosition();
-
-        // 计算上一个焦点位置
-        int newPos = Math.max(0, currentPos - 1);
-
-        Log.d("moveFocusUp",newPos+"xxxx"+currentPos+"xxxxxxx");
-        // 平滑滚动到上一个位置
-        recyclerView.scrollToPosition(newPos);
-    }
-
-    private void moveFocusDown() {
-        // 获取当前焦点位置
-        int currentPos = getCurrentFocusPosition();
-
-        // 计算下一个焦点位置
-        int newPos = Math.min(getItemCount() - 1, currentPos + 1);
-
-        Log.d("moveFocusDown",newPos+"xxxx"+currentPos+"xxxxxxx");
-        // 平滑滚动到下一个位置
-        recyclerView.scrollToPosition(newPos);
-    }
 
 
 }

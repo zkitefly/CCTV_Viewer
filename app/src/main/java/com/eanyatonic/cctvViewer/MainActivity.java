@@ -1,12 +1,10 @@
 package com.eanyatonic.cctvViewer;
 
 import android.annotation.SuppressLint;
-import android.app.Instrumentation;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.graphics.Color;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
@@ -22,21 +20,17 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.eanyatonic.cctvViewer.bean.EpgInfo;
 import com.eanyatonic.cctvViewer.tools.FileTool;
 import com.eanyatonic.cctvViewer.tools.FileUtils;
-import com.eanyatonic.cctvViewer.tools.RestartAppUtil;
 import com.eanyatonic.cctvViewer.tools.SysTool;
 import com.tencent.smtt.export.external.TbsCoreSettings;
 import com.tencent.smtt.export.external.interfaces.IX5WebChromeClient;
 import com.tencent.smtt.export.external.interfaces.SslError;
 import com.tencent.smtt.export.external.interfaces.SslErrorHandler;
-import com.tencent.smtt.export.external.interfaces.WebResourceRequest;
-import com.tencent.smtt.export.external.interfaces.WebResourceResponse;
 import com.tencent.smtt.sdk.QbSdk;
 import com.tencent.smtt.sdk.WebChromeClient;
 import com.tencent.smtt.sdk.WebSettings;
@@ -49,7 +43,6 @@ import org.json.JSONException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -755,19 +748,16 @@ public class MainActivity extends AppCompatActivity {
         // 将缓冲区中的数字转换为整数
         if (digitBuffer.length() > 0) {
             int numericValue = Integer.parseInt(digitBuffer.toString());
-            Log.d("numericValue",numericValue+"xxx"+getCCTVHeadOffset()+"xxx"+getCCTVHeadOffset());
             if (numericValue > getCCTVHeadOffset() && numericValue <= getCCTVTailOffset()) {
                 currentLiveIndex = numericValue - 1;
                 loadLiveUrl();
 
             }
 
-            Log.d("numericValue",numericValue+"xxx"+getYSPHeadOffset()+"xxx"+getYSPTailOffset());
             if (numericValue > getYSPHeadOffset() && numericValue <= getYSPTailOffset()){
                 currentLiveIndex = numericValue - 1;
                 loadLiveUrl();
                 for (int i = 0; i < epgYSPList.size(); i++) {
-                    Log.d("channelNames",channelNames[numericValue]+"xxx"+epgYSPList.get(i).getName());
                     if (channelNames[numericValue].equals(epgYSPList.get(i).getName())){
                         cctvFinishedView.evaluateJavascript(epgYSPList.get(i).getId(),null);
                     }
