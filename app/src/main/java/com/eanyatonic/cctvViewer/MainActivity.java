@@ -229,7 +229,7 @@ public class MainActivity extends AppCompatActivity {
         mFrameLayout = findViewById(R.id.flVideoContainer);
         // X5WebView初始化
         initX5WebView();
-        Toast.makeText(MainActivity.this, "x5内核状态" + QbSdk.canLoadX5(getApplicationContext()) + "内核架构" + SysTool.showSysAach() + "  如果x5内核状态为true,无法播放请重启应用", Toast.LENGTH_SHORT).show();
+        Toast.makeText(MainActivity.this, "x5内核状态" + QbSdk.canLoadX5(getApplicationContext()) + "内核架构" + SysTool.showSysAach() + ",若无法播放请重启应用", Toast.LENGTH_SHORT).show();
         // 初始化 WebView
         webView = findViewById(R.id.webView);
         // 初始化显示正在输入的数字的 TextView
@@ -567,6 +567,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+
     private void tbsInstall() {
         HashMap<String, Object> map = new HashMap<>(2);
         map.put(TbsCoreSettings.TBS_SETTINGS_USE_SPEEDY_CLASSLOADER, true);
@@ -754,14 +755,26 @@ public class MainActivity extends AppCompatActivity {
         // 将缓冲区中的数字转换为整数
         if (digitBuffer.length() > 0) {
             int numericValue = Integer.parseInt(digitBuffer.toString());
-
-            // 检查数字是否在有效范围内
-            if (numericValue > 0 && numericValue <= liveUrls.length) {
+            Log.d("numericValue",numericValue+"xxx"+getCCTVHeadOffset()+"xxx"+getCCTVHeadOffset());
+            if (numericValue > getCCTVHeadOffset() && numericValue <= getCCTVTailOffset()) {
                 currentLiveIndex = numericValue - 1;
                 loadLiveUrl();
-                saveCurrentLiveIndex(); // 保存当前位置
+
             }
 
+            Log.d("numericValue",numericValue+"xxx"+getYSPHeadOffset()+"xxx"+getYSPTailOffset());
+            if (numericValue > getYSPHeadOffset() && numericValue <= getYSPTailOffset()){
+                currentLiveIndex = numericValue - 1;
+                loadLiveUrl();
+                for (int i = 0; i < epgYSPList.size(); i++) {
+                    Log.d("channelNames",channelNames[numericValue]+"xxx"+epgYSPList.get(i).getName());
+                    if (channelNames[numericValue].equals(epgYSPList.get(i).getName())){
+                        cctvFinishedView.evaluateJavascript(epgYSPList.get(i).getId(),null);
+                    }
+                }
+            }
+
+            saveCurrentLiveIndex(); // 保存当前位置
             // 重置缓冲区
             digitBuffer.setLength(0);
 
@@ -824,10 +837,28 @@ public class MainActivity extends AppCompatActivity {
         return liveUrls.length-1;
     }
 
+    private int getYSPHeadOffset(){
+        for (int i = 0; i < liveUrls.length; i++) {
+            if (liveUrls[i].contains("yangshipin.cn")){
+                return i;
+            }
+        }
+        return 0;
+    }
+
+    private int getYSPTailOffset(){
+        for (int i = liveUrls.length - 1; i >= 0; i--) {
+            if (liveUrls[i].contains("yangshipin.cn")){
+                return i;
+            }
+        }
+        return liveUrls.length-1;
+    }
+
+
+
     private void navigateVueToPreviousLive() {
-        Log.d("getCCTVTailOffset()",yanShiPingCurrentChannel+"xx"+epgYSPList.get(0).getName());
         if (yanShiPingCurrentChannel!=null&&yanShiPingCurrentChannel.equals(epgYSPList.get(0).getName())){
-            Log.d("getCCTVTailOffset()",getCCTVTailOffset()+"xx");
             navigateToPreviousLive(getCCTVTailOffset());
         }else
         if (yanShiPingCurrentChannel!=null&&epgYSPList!=null&&epgYSPList.size()>0){
@@ -952,17 +983,6 @@ public class MainActivity extends AppCompatActivity {
         }
         super.onDestroy();
     }
-
-
-//    @Override
-//    public void onItemClick(View view, int position) {
-//        Log.d("onItemClick", position + "xxxxxxx");
-//        EpgInfo channel = epgList.get(position);
-//        Log.d("cctvFinishedView",cctvFinishedView.toString());
-//        cctvFinishedView.evaluateJavascript("async function xx(){document.querySelector('#play_or_plause_player').click();await sleep(3000);"
-//                        + "document.querySelector('#" + channel.getId() + "')" + ".click();"+"}"+"xx()"
-//                , null);
-//    }
 
 
 }
