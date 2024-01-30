@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
@@ -13,6 +14,7 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.webkit.JavascriptInterface;
 import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
@@ -31,6 +33,8 @@ import com.tencent.smtt.export.external.TbsCoreSettings;
 import com.tencent.smtt.export.external.interfaces.IX5WebChromeClient;
 import com.tencent.smtt.export.external.interfaces.SslError;
 import com.tencent.smtt.export.external.interfaces.SslErrorHandler;
+import com.tencent.smtt.sdk.CookieManager;
+import com.tencent.smtt.sdk.CookieSyncManager;
 import com.tencent.smtt.sdk.QbSdk;
 import com.tencent.smtt.sdk.WebChromeClient;
 import com.tencent.smtt.sdk.WebSettings;
@@ -39,10 +43,19 @@ import com.tencent.smtt.sdk.WebViewClient;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+
+import okhttp3.HttpUrl;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -77,7 +90,49 @@ public class MainActivity extends AppCompatActivity {
             "https://tv.cctv.com/live/cctv5plus/",
             "https://tv.cctv.com/live/cctveurope",
             "https://tv.cctv.com/live/cctvamerica/",
+
+            "https://www.yangshipin.cn/#/tv/home?pid=600002264",
             "https://www.yangshipin.cn/#/tv/home?pid=600001859",
+            "https://www.yangshipin.cn/#/tv/home?pid=600001800",
+            "https://www.yangshipin.cn/#/tv/home?pid=600001801",
+            "https://www.yangshipin.cn/#/tv/home?pid=600001814",
+            "https://www.yangshipin.cn/#/tv/home?pid=600001818",
+            "https://www.yangshipin.cn/#/tv/home?pid=600001817",
+            "https://www.yangshipin.cn/#/tv/home?pid=600001802",
+            "https://www.yangshipin.cn/#/tv/home?pid=600004092",
+            "https://www.yangshipin.cn/#/tv/home?pid=600001803",
+            "https://www.yangshipin.cn/#/tv/home?pid=600004078",
+            "https://www.yangshipin.cn/#/tv/home?pid=600001805",
+            "https://www.yangshipin.cn/#/tv/home?pid=600001806",
+            "https://www.yangshipin.cn/#/tv/home?pid=600001807",
+            "https://www.yangshipin.cn/#/tv/home?pid=600001811",
+            "https://www.yangshipin.cn/#/tv/home?pid=600001809",
+            "https://www.yangshipin.cn/#/tv/home?pid=600001815",
+            "https://www.yangshipin.cn/#/tv/home?pid=600098637",
+            "https://www.yangshipin.cn/#/tv/home?pid=600099502",
+            "https://www.yangshipin.cn/#/tv/home?pid=600001810",
+            "https://www.yangshipin.cn/#/tv/home?pid=600014550",
+            "https://www.yangshipin.cn/#/tv/home?pid=600084704",
+            "https://www.yangshipin.cn/#/tv/home?pid=600084758",
+            "https://www.yangshipin.cn/#/tv/home?pid=600084782",
+            "https://www.yangshipin.cn/#/tv/home?pid=600084744",
+            "https://www.yangshipin.cn/#/tv/home?pid=600084781",
+            "https://www.yangshipin.cn/#/tv/home?pid=600099658",
+            "https://www.yangshipin.cn/#/tv/home?pid=600099655",
+            "https://www.yangshipin.cn/#/tv/home?pid=600099620",
+            "https://www.yangshipin.cn/#/tv/home?pid=600099637",
+            "https://www.yangshipin.cn/#/tv/home?pid=600099660",
+            "https://www.yangshipin.cn/#/tv/home?pid=600099649",
+            "https://www.yangshipin.cn/#/tv/home?pid=600099636",
+            "https://www.yangshipin.cn/#/tv/home?pid=600099659",
+            "https://www.yangshipin.cn/#/tv/home?pid=600099650",
+            "https://www.yangshipin.cn/#/tv/home?pid=600099653",
+            "https://www.yangshipin.cn/#/tv/home?pid=600099652",
+            "https://www.yangshipin.cn/#/tv/home?pid=600099656",
+            "https://www.yangshipin.cn/#/tv/home?pid=600099651",
+
+
+
             "https://www.yangshipin.cn/#/tv/home?pid=600002309",
             "https://www.yangshipin.cn/#/tv/home?pid=600002521",
             "https://www.yangshipin.cn/#/tv/home?pid=600002483",
@@ -129,7 +184,45 @@ public class MainActivity extends AppCompatActivity {
             "CCTV-5+ 体育赛事",
             "CCTV 欧洲",
             "CCTV 美国",
+            "CCTV4K",
             "CCTV1",
+            "CCTV2",
+            "CCTV3",
+            "CCTV4",
+            "CCTV5",
+            "CCTV5+",
+            "CCTV6",
+            "CCTV7",
+            "CCTV8",
+            "CCTV9",
+            "CCTV10",
+            "CCTV11",
+            "CCTV12",
+            "CCTV13",
+            "CCTV14",
+            "CCTV15",
+            "CCTV16-HD",
+            "CCTV16(4K）",
+            "CCTV17",
+            "CGTN",
+            "CGTN法语频道",
+            "CGTN俄语频道",
+            "CGTN阿拉伯语频道",
+            "CGTN西班牙语频道",
+            "CGTN外语纪录频道",
+            "CCTV风云剧场频道",
+            "CCTV第一剧场频道",
+            "CCTV怀旧剧场频道",
+            "CCTV世界地理频道",
+            "CCTV风云音乐频道",
+            "CCTV兵器科技频道",
+            "CCTV高尔夫·网球频道",
+            "CCTV女性时尚频道",
+            "CCTV央视文化精品频道",
+            "CCTV央视台球频道",
+            "CCTV电视指南频道",
+            "CCTV卫生健康频道",
+
             "北京卫视",
             "江苏卫视",
             "东方卫视",
@@ -174,45 +267,36 @@ public class MainActivity extends AppCompatActivity {
 
     private String info = "";
 
-    public List<EpgInfo> epgList = new ArrayList<>();
-    public List<EpgInfo> epgYSPList = new ArrayList<>();
-
     private String liveType;
 
+    public List<EpgInfo> epgList = new ArrayList<>();
 
-    @JavascriptInterface
-    public void setCctvEpgInfo(String result) throws JSONException {
-        epgList.clear();
-        JSONArray jsonArray = new JSONArray(result);
-        for (int i = 0; i < jsonArray.length(); i++) {
-            EpgInfo epgInfo = new EpgInfo(jsonArray.getJSONObject(i).getString("id"), jsonArray.getJSONObject(i).getString("name"));
-            epgList.add(epgInfo);
-            Log.d("setCctvEpgInfo", epgInfo.getName() + epgInfo.getId());
+
+    private String getYSPToken() {
+        // 在需要发送请求的方法中添加以下代码
+        OkHttpClient client = new OkHttpClient();
+// 构建请求 URL
+        HttpUrl.Builder urlBuilder = HttpUrl.parse("https://lyrics.run/my-tv/v1/info").newBuilder();
+        String url = urlBuilder.build().toString();
+
+        Request request = new Request.Builder()
+                .url(url)
+                .build();
+        try (Response response = client.newCall(request).execute()) {
+            if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
+
+            // 获取 JSON 字符串并解析为对象
+            String json = response.body().string();
+            JSONObject jsonObject = new JSONObject(json);
+
+            // 根据 JSON 的层级结构，逐级提取数据
+            return jsonObject.getJSONObject("data").getString("token");
+
+        } catch (JSONException | IOException e) {
+            throw new RuntimeException(e);
         }
-
     }
 
-    @JavascriptInterface
-    public void setYanShiPingEpgInfo(String result) throws JSONException {
-        epgYSPList.clear();
-        epgYSPList.add(new EpgInfo("document.querySelector(\".tv-main-con-r-list > div > div:nth-child(2)\").click()","CCTV1"));
-        JSONArray jsonArray = new JSONArray(result);
-        for (int i = 0; i < jsonArray.length(); i++) {
-            EpgInfo epgInfo = new EpgInfo(jsonArray.getJSONObject(i).getString("id"), jsonArray.getJSONObject(i).getString("name"));
-            epgYSPList.add(epgInfo);
-            Log.d("setYanShiPingEpgInfo",epgInfo.getName());
-        }
-
-        Log.d("setYanShiPingEpgInfo", epgYSPList.size()+"x");
-    }
-
-    private String yanShiPingCurrentChannel;
-    @JavascriptInterface
-    public void setYanShiPingCurrentChannel(String result) {
-        yanShiPingCurrentChannel = result;
-    }
-
-    // document.querySelector(".tv-main-con-r-list-left-imgb.tvSelect").innerText
 
 
     @Override
@@ -235,10 +319,10 @@ public class MainActivity extends AppCompatActivity {
         // 加载上次保存的位置
         loadLastLiveIndex();
         // 添加自动化调试
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-//            WebView.setWebContentsDebuggingEnabled(true);
-//            Log.d("remote debug", "远程调试");
-//        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            WebView.setWebContentsDebuggingEnabled(true);
+            Log.d("remote debug", "远程调试");
+        }
         // 配置 WebView 设置
 //        filetool = new FileTool(this);
 //        String backwardScript =filetool.readFileContent("js/backwardScript.js");
@@ -272,13 +356,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onPageFinished(WebView view, String url) {
                 cctvFinishedView = view;
-
-                // 页面加载完成后执行 JavaScript 脚本
-                // 清空info
                 info = "";
-                if (url.contains("cctv")) {
+                if (url.contains("cctv.com")){
                     liveType = "cctv";
-
                     // 获取节目预告和当前节目
                     view.evaluateJavascript("document.querySelector('#jiemu > li.cur.act').innerText", value -> {
                         // 处理获取到的元素值
@@ -363,7 +443,8 @@ public class MainActivity extends AppCompatActivity {
                                             btn.click();
                                             btn.click();
                                             btn.click();
-                                    
+                                            document.querySelector("#player_sound_player").style.display = 'none'
+                                            
                                             // 休眠 50 毫秒
                                             await sleep(50);
                                     
@@ -374,18 +455,8 @@ public class MainActivity extends AppCompatActivity {
                                         }, 3000);
                             }
                             """, null);
-
-
-                    new Handler().postDelayed(() -> {
-                        loadingOverlay.setVisibility(View.GONE);
-                        showOverlay(channelNames[currentLiveIndex] + "\n" + info);
-                        channelAdapter.notifyDataSetChanged();
-                    }, 3000);
-
                 } else if (url.contains("yangshipin")) {
                     liveType = "yangshipin";
-                    //当前频道
-
                     view.evaluateJavascript("""
                             {
                                 function sleep(ms) {
@@ -404,46 +475,12 @@ public class MainActivity extends AppCompatActivity {
                                        cur = document.querySelector('.tv-main-con-r-list-left-imgb.tvSelect').innerText.replace(/[\\s\\n]/g, '')
                                     }
                                     console.log(cur)
-                                    bridge.setYanShiPingCurrentChannel(cur)
                                     clearInterval(interval)
                                 }, 3000);
                             }
                             """,null);
 
 
-                    // 获取频道列表
-                    view.evaluateJavascript("""
-                            {
-                                function sleep(ms) {
-                                    return new Promise(resolve => setTimeout(resolve, ms));
-                                }
-
-                                // 页面加载完成后执行 JavaScript 脚本
-                                let interval = setInterval(async function () {
-                                    var epgInfoList = [];
-                                    // 休眠 1000 毫秒（1秒）
-                                    await sleep(1050);
-                                    var epgList = document.querySelector(".tv-main-con-r-list > div").childNodes
-                                
-                                    for (let index = 0; index < epgList.length; index++) {
-                                        const element = epgList[index];
-                                        if(element.className==="oveerflow-1 tv-main-con-r-list-left-imgb"||element.className==="oveerflow-1 tv-main-con-r-list-left-imgb tvSelect"){
-                                            var epgInfo = {
-                                                "id":'document.querySelector(".tv-main-con-r-list > div").childNodes['+index+']'+'.click()',
-                                                "name":document.querySelector(".tv-main-con-r-list > div").childNodes[index].innerText.replace(/\\n/g, '')
-                                            }
-                                            epgInfoList.push(epgInfo)
-                                        }
-                                
-                                    }
-
-                                    if(epgList.length>0){
-                                        clearInterval(interval)
-                                        bridge.setYanShiPingEpgInfo(JSON.stringify(epgInfoList))
-                                    }
-                                }, 3000);
-                            }
-                            """, null);
 
                     view.evaluateJavascript("""
                             {
@@ -459,7 +496,7 @@ public class MainActivity extends AppCompatActivity {
                                     await sleep(50);
                                     document.querySelector(".container").__vue__.changeVolume()
                                     await sleep(50);
-                                    console.log('点击全屏按钮');
+                                    console.log('点击ysp全屏按钮');
                                     document.querySelector(".videoFull").click()
                                     clearInterval(interval);
                                 }, 3000);
@@ -467,8 +504,13 @@ public class MainActivity extends AppCompatActivity {
                             """, null);
                 }
 
-            }
+                new Handler().postDelayed(() -> {
+                    loadingOverlay.setVisibility(View.GONE);
+                    showOverlay(channelNames[currentLiveIndex] + "\n" + info);
+                    channelAdapter.notifyDataSetChanged();
+                }, 3000);
 
+            }
 
         });
         // 设置 WebView 客户端
@@ -532,26 +574,20 @@ public class MainActivity extends AppCompatActivity {
 
         loadLiveUrl();
 
+//        new Handler().postDelayed(() -> {
+//            RelativeLayout mainView = findViewById(R.id.main_browse_fragment);
+//            if(mainView != null) {
+//                mainView.removeView(cctvFinishedView);
+//            }
+//            mFrameLayout.addView(cctvFinishedView);
+//        }, 6000);
+
+
+
     }
 
 
     private void initX5WebView() {
-        // 搜集本地tbs内核信息并上报服务器，服务器返回结果决定使用哪个内核。
-//        QbSdk.PreInitCallback cb = new QbSdk.PreInitCallback() {
-//            @Override
-//            public void onViewInitFinished(boolean arg0) {
-//                // x5內核初始化完成的回调，为true表示x5内核加载成功，否则表示x5内核加载失败，会自动切换到系统内核。
-//                Log.d("X5CORE", "onViewInitFinished is " + arg0);
-//            }
-//
-//            @Override
-//            public void onCoreInitFinished() {
-//
-//            }
-//        };
-//        // x5内核初始化接口
-//        QbSdk.initX5Environment(this, cb);
-
         // 在调用TBS初始化、创建WebView之前进行如下配置2
         boolean canLoadX5 = QbSdk.canLoadX5(getApplicationContext());
         if (!canLoadX5) {
@@ -582,7 +618,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
-        if (!recyclerView.hasFocus() && event.getAction() == KeyEvent.ACTION_DOWN && liveType.equals("cctv")) {
+        if (!recyclerView.hasFocus() && event.getAction() == KeyEvent.ACTION_DOWN) {
             cctvFinishedView.evaluateJavascript(
                     """
                                  function simulate(element, eventName) {
@@ -720,26 +756,6 @@ public class MainActivity extends AppCompatActivity {
 
                 return true;  // 事件已处理，不传递给 WebView
             }
-        } else if (!recyclerView.hasFocus() && event.getAction() == KeyEvent.ACTION_DOWN && liveType.equals("yangshipin")) {
-            // 换台无法使用loadUrl vue hash模式害死人=.= 可惜不能改服务端代码,只能写js了
-            if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP || event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN || event.getKeyCode() == KeyEvent.KEYCODE_DPAD_LEFT || event.getKeyCode() == KeyEvent.KEYCODE_DPAD_RIGHT || event.getKeyCode() == KeyEvent.KEYCODE_ENTER || event.getKeyCode() == KeyEvent.KEYCODE_DPAD_CENTER || event.getKeyCode() == KeyEvent.KEYCODE_MENU) {
-                if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP) {
-                    navigateVueToPreviousLive();
-                    return true;  // 返回 true 表示事件已处理，不传递给 WebView
-                } else if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN) {
-                    navigateVueToNextLive();
-                    return true;  // 返回 true 表示事件已处理，不传递给 WebView
-                } else if (event.getKeyCode() == KeyEvent.KEYCODE_ENTER || event.getKeyCode() == KeyEvent.KEYCODE_DPAD_CENTER) {
-                    simulateTouch(webView, 0.5f, 0.5f);
-                    return true;  // 返回 true 表示事件已处理，不传递给 WebView
-                }
-            } else if (event.getKeyCode() >= KeyEvent.KEYCODE_0 && event.getKeyCode() <= KeyEvent.KEYCODE_9) {
-                int numericKey = event.getKeyCode() - KeyEvent.KEYCODE_0;
-                digitBuffer.append(numericKey);
-                new Handler().postDelayed(this::handleNumericInput, DIGIT_TIMEOUT);
-                updateInputTextView();
-                return true;  // 事件已处理，不传递给 WebView
-            }
         }
         return super.dispatchKeyEvent(event);  // 如果不处理，调用父类的方法继续传递事件
     }
@@ -748,22 +764,8 @@ public class MainActivity extends AppCompatActivity {
         // 将缓冲区中的数字转换为整数
         if (digitBuffer.length() > 0) {
             int numericValue = Integer.parseInt(digitBuffer.toString());
-            if (numericValue > getCCTVHeadOffset() && numericValue <= getCCTVTailOffset()) {
-                currentLiveIndex = numericValue - 1;
-                loadLiveUrl();
-
-            }
-
-            if (numericValue > getYSPHeadOffset() && numericValue <= getYSPTailOffset()){
-                currentLiveIndex = numericValue - 1;
-                loadLiveUrl();
-                for (int i = 0; i < epgYSPList.size(); i++) {
-                    if (channelNames[numericValue].equals(epgYSPList.get(i).getName())){
-                        cctvFinishedView.evaluateJavascript(epgYSPList.get(i).getId(),null);
-                    }
-                }
-            }
-
+            currentLiveIndex = numericValue - 1;
+            loadLiveUrl();
             saveCurrentLiveIndex(); // 保存当前位置
             // 重置缓冲区
             digitBuffer.setLength(0);
@@ -795,15 +797,39 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void loadLiveUrl() {
-        Log.d("currentLiveIndex", currentLiveIndex + "currentLiveIndex" + liveUrls.length);
-        if (currentLiveIndex >= 0 && currentLiveIndex < liveUrls.length) {
-            // 显示加载的View
-//            loadingOverlay.setVisibility(View.VISIBLE);
+        if (currentLiveIndex>=getCCTVHeadOffset()&&currentLiveIndex<=getCCTVTailOffset()){
             webView.setInitialScale(getMinimumScale());
-
-            //  webView.reload(); 不能解决#地址问题
-
             webView.loadUrl(liveUrls[currentLiveIndex]);
+        }
+
+        if (currentLiveIndex>=getYSPHeadOffset()&&currentLiveIndex<=getYSPTailOffset()){
+
+            // 创建CookieManager对象
+            CookieManager cookieManager = CookieManager.getInstance();
+            cookieManager.setAcceptCookie(true);
+            cookieManager.setAcceptThirdPartyCookies(webView, true);
+            cookieManager.removeAllCookie();
+            cookieManager.removeSessionCookie();
+            Executor myExecutor = Executors.newSingleThreadExecutor();
+            myExecutor.execute(() -> {
+                cookieManager.setCookie(".yangshipin.cn", "yspopenid=vu0-8lgGV2LW9QjDeuBFsX8yMnzs37Q3_HZF6XyVDpGR_I;Domain=.yangshipin.cn;Path=/");
+                cookieManager.setCookie(".yangshipin.cn", "vusession="+getYSPToken()+";Domain=.yangshipin.cn;Path=/");
+            });
+
+               // 将Cookie同步到WebView
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                cookieManager.flush();
+            } else {
+                CookieSyncManager.getInstance().sync();
+            }
+            webView.setInitialScale(getMinimumScale());
+            webView.loadUrl(liveUrls[currentLiveIndex]);
+            new Handler().postDelayed(() -> {
+                if(webView != null) {
+                    webView.setInitialScale(getMinimumScale());
+                    webView.reload();
+                }
+            }, 1000);
         }
     }
 
@@ -847,37 +873,6 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-    private void navigateVueToPreviousLive() {
-        if (yanShiPingCurrentChannel!=null&&yanShiPingCurrentChannel.equals(epgYSPList.get(0).getName())){
-            navigateToPreviousLive(getCCTVTailOffset());
-        }else
-        if (yanShiPingCurrentChannel!=null&&epgYSPList!=null&&epgYSPList.size()>0){
-            for (int i = 0; i < epgYSPList.size(); i++) {
-                if (yanShiPingCurrentChannel.equals(epgYSPList.get(i).getName())){
-                    cctvFinishedView.evaluateJavascript(epgYSPList.get(i-1).getId(),null);
-                    currentLiveIndex = getCCTVTailOffset() + i-1;
-                    saveCurrentLiveIndex(); // 保存当前位置
-                }
-            }
-        }
-    }
-
-
-    private void navigateVueToNextLive() {
-        if (yanShiPingCurrentChannel!=null&&yanShiPingCurrentChannel.equals(epgYSPList.get(epgYSPList.size()-1).getName())){
-            navigateToNextLive(getCCTVHeadOffset());
-        }else
-        if (yanShiPingCurrentChannel!=null&&epgYSPList!=null&&epgYSPList.size()>0){
-            for (int i = 0; i < epgYSPList.size(); i++) {
-                if (yanShiPingCurrentChannel.equals(epgYSPList.get(i).getName())){
-                    cctvFinishedView.evaluateJavascript(epgYSPList.get(i+1).getId(),null);
-                    currentLiveIndex = getCCTVTailOffset() + i+1;
-                    saveCurrentLiveIndex(); // 保存当前位置
-                }
-            }
-        }
-
-    }
 
 
     private void navigateToPreviousLive() {
@@ -892,17 +887,6 @@ public class MainActivity extends AppCompatActivity {
         saveCurrentLiveIndex(); // 保存当前位置
     }
 
-    private void navigateToPreviousLive(int index) {
-        currentLiveIndex = index;
-        loadLiveUrl();
-        saveCurrentLiveIndex(); // 保存当前位置
-    }
-
-    private void navigateToNextLive(int index) {
-        currentLiveIndex = index;
-        loadLiveUrl();
-        saveCurrentLiveIndex(); // 保存当前位置
-    }
 
     private int getMinimumScale() {
         DisplayMetrics displayMetrics = new DisplayMetrics();
