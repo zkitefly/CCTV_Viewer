@@ -51,6 +51,8 @@ https://github.com/Zcodeoooo/CCTV_Viewer/releases/
             "CCTV-5+ 体育赛事",
             "CCTV 欧洲",
             "CCTV 美国",
+
+    央视频
             "CCTV4K",
             "CCTV1",
             "CCTV2",
