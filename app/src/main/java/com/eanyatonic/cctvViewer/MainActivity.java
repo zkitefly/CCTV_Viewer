@@ -15,6 +15,7 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.webkit.JavascriptInterface;
 import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
@@ -449,7 +450,7 @@ public class MainActivity extends AppCompatActivity {
                                             await sleep(50);
                                     
                                             console.log('点击全屏按钮');
-                                            var fullscreenBtn = document.querySelector('#player_pagefullscreen_player');
+                                            var fullscreenBtn = document.querySelector('#player_pagefullscreen_yes_player');
                                             fullscreenBtn.click();
                                             clearInterval(interval);
                                         }, 3000);
@@ -492,10 +493,10 @@ public class MainActivity extends AppCompatActivity {
                                     console.log('设置音量并点击音量按钮');
                                     document.querySelector(".container").__vue__.volume = 1
                                     await sleep(50);
-                                    document.querySelector(".container").__vue__.changeVolume()
-                                    await sleep(50);
-                                    document.querySelector(".container").__vue__.changeVolume()
-                                    await sleep(50);
+                                    if(document.querySelector(".voice.on").style.display === 'none'){
+                                        await sleep(50);
+                                        document.querySelector(".container").__vue__.changeVolume()
+                                    }
                                     console.log('点击ysp全屏按钮');
                                     document.querySelector(".videoFull").click()
                                     clearInterval(interval);
@@ -582,11 +583,50 @@ public class MainActivity extends AppCompatActivity {
 //            mFrameLayout.addView(cctvFinishedView);
 //        }, 6000);
 
-
+        startPeriodicTask();
 
     }
+    private final Handler handler = new Handler();
+    // 启动自动播放定时任务
+    private void startPeriodicTask() {
+        // 使用 postDelayed 方法设置定时任务
+        handler.postDelayed(periodicTask, 2000); // 2000 毫秒，即 2 秒钟
+    }
 
+    // 定时任务具体操作
+    private final Runnable periodicTask = new Runnable() {
+        @Override
+        public void run() {
+            // 获取 div 元素的 display 属性，并执行相应的操作
+            getDivDisplayPropertyAndDoSimulateTouch();
 
+            // 完成后再次调度定时任务
+            handler.postDelayed(this, 5000); // 2000 毫秒，即 2 秒钟
+        }
+    };
+
+    // 获取 div 元素的 display 属性并执行相应的操作
+    private void getDivDisplayPropertyAndDoSimulateTouch() {
+        if (webView != null) {
+            if(currentLiveIndex>=getCCTVHeadOffset()&&currentLiveIndex<=getCCTVTailOffset()){
+                webView.evaluateJavascript("document.getElementById('play_or_pause_play_player').style.display", value -> {
+                    // 处理获取到的 display 属性值
+                    if (value.equals("\"block\"")) {
+                        // 执行点击操作
+                        simulateTouch(webView, 0.5f, 0.5f);
+                    }
+                });
+            } else if (currentLiveIndex>=getYSPHeadOffset()&&currentLiveIndex<=getYSPTailOffset()){
+                String scriptPlay =
+                        """
+                            if(!document.querySelector(".container").__vue__.playStatus.isPaused){
+                                 document.querySelector(".container").__vue__.togglePlay()
+                            }
+                        """;
+                webView.evaluateJavascript(scriptPlay, null);
+            }
+        }
+    }
     private void initX5WebView() {
         // 在调用TBS初始化、创建WebView之前进行如下配置2
         boolean canLoadX5 = QbSdk.canLoadX5(getApplicationContext());
