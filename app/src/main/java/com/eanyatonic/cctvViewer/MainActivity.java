@@ -590,7 +590,7 @@ public class MainActivity extends AppCompatActivity {
     // 启动自动播放定时任务
     private void startPeriodicTask() {
         // 使用 postDelayed 方法设置定时任务
-        handler.postDelayed(periodicTask, 2000); // 2000 毫秒，即 2 秒钟
+        handler.postDelayed(periodicTask, 5000); // 2000 毫秒，即 2 秒钟
     }
 
     // 定时任务具体操作
@@ -848,8 +848,6 @@ public class MainActivity extends AppCompatActivity {
             CookieManager cookieManager = CookieManager.getInstance();
             cookieManager.setAcceptCookie(true);
             cookieManager.setAcceptThirdPartyCookies(webView, true);
-            cookieManager.removeAllCookie();
-            cookieManager.removeSessionCookie();
             Executor myExecutor = Executors.newSingleThreadExecutor();
             myExecutor.execute(() -> {
                 cookieManager.setCookie(".yangshipin.cn", "yspopenid=vu0-8lgGV2LW9QjDeuBFsX8yMnzs37Q3_HZF6XyVDpGR_I;Domain=.yangshipin.cn;Path=/");
