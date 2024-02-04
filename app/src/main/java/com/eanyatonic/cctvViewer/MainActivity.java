@@ -131,9 +131,6 @@ public class MainActivity extends AppCompatActivity {
             "https://www.yangshipin.cn/#/tv/home?pid=600099652",
             "https://www.yangshipin.cn/#/tv/home?pid=600099656",
             "https://www.yangshipin.cn/#/tv/home?pid=600099651",
-
-
-
             "https://www.yangshipin.cn/#/tv/home?pid=600002309",
             "https://www.yangshipin.cn/#/tv/home?pid=600002521",
             "https://www.yangshipin.cn/#/tv/home?pid=600002483",
@@ -185,6 +182,7 @@ public class MainActivity extends AppCompatActivity {
             "CCTV-5+ 体育赛事",
             "CCTV 欧洲",
             "CCTV 美国",
+
             "CCTV4K",
             "CCTV1",
             "CCTV2",
@@ -217,13 +215,13 @@ public class MainActivity extends AppCompatActivity {
             "CCTV世界地理频道",
             "CCTV风云音乐频道",
             "CCTV兵器科技频道",
+            "CCTV风云足球频道",
             "CCTV高尔夫·网球频道",
             "CCTV女性时尚频道",
             "CCTV央视文化精品频道",
             "CCTV央视台球频道",
             "CCTV电视指南频道",
             "CCTV卫生健康频道",
-
             "北京卫视",
             "江苏卫视",
             "东方卫视",
@@ -248,6 +246,7 @@ public class MainActivity extends AppCompatActivity {
     };
 
 
+
     private int currentLiveIndex;
 
     private static final String PREF_NAME = "MyPreferences";
@@ -267,8 +266,6 @@ public class MainActivity extends AppCompatActivity {
     private TextView overlayTextView;
 
     private String info = "";
-
-    private String liveType;
 
     public List<EpgInfo> epgList = new ArrayList<>();
 
@@ -302,6 +299,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.d("xxx",liveUrls.length+"xxxx"+channelNames.length);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mFrameLayout = findViewById(R.id.flVideoContainer);
@@ -320,10 +318,10 @@ public class MainActivity extends AppCompatActivity {
         // 加载上次保存的位置
         loadLastLiveIndex();
         // 添加自动化调试
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            WebView.setWebContentsDebuggingEnabled(true);
-            Log.d("remote debug", "远程调试");
-        }
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+//            WebView.setWebContentsDebuggingEnabled(true);
+//            Log.d("remote debug", "远程调试");
+//        }
         // 配置 WebView 设置
 //        filetool = new FileTool(this);
 //        String backwardScript =filetool.readFileContent("js/backwardScript.js");
@@ -359,7 +357,6 @@ public class MainActivity extends AppCompatActivity {
                 cctvFinishedView = view;
                 info = "";
                 if (url.contains("cctv.com")){
-                    liveType = "cctv";
                     // 获取节目预告和当前节目
                     view.evaluateJavascript("document.querySelector('#jiemu > li.cur.act').innerText", value -> {
                         // 处理获取到的元素值
@@ -457,7 +454,6 @@ public class MainActivity extends AppCompatActivity {
                             }
                             """, null);
                 } else if (url.contains("yangshipin")) {
-                    liveType = "yangshipin";
                     view.evaluateJavascript("""
                             {
                                 function sleep(ms) {
@@ -804,9 +800,14 @@ public class MainActivity extends AppCompatActivity {
         // 将缓冲区中的数字转换为整数
         if (digitBuffer.length() > 0) {
             int numericValue = Integer.parseInt(digitBuffer.toString());
-            currentLiveIndex = numericValue - 1;
-            loadLiveUrl();
-            saveCurrentLiveIndex(); // 保存当前位置
+
+            // 检查数字是否在有效范围内
+            if (numericValue > 0 && numericValue <= liveUrls.length) {
+                currentLiveIndex = numericValue - 1;
+                loadLiveUrl();
+                saveCurrentLiveIndex(); // 保存当前位置
+            }
+
             // 重置缓冲区
             digitBuffer.setLength(0);
 
@@ -849,7 +850,11 @@ public class MainActivity extends AppCompatActivity {
             cookieManager.setAcceptCookie(true);
             cookieManager.setAcceptThirdPartyCookies(webView, true);
             Executor myExecutor = Executors.newSingleThreadExecutor();
+//            cookieManager.removeExpiredCookie();
+//            cookieManager.removeAllCookie();
+//            cookieManager.removeSessionCookie();
             myExecutor.execute(() -> {
+
                 cookieManager.setCookie(".yangshipin.cn", "yspopenid=vu0-8lgGV2LW9QjDeuBFsX8yMnzs37Q3_HZF6XyVDpGR_I;Domain=.yangshipin.cn;Path=/");
                 cookieManager.setCookie(".yangshipin.cn", "vusession="+getYSPToken()+";Domain=.yangshipin.cn;Path=/");
             });
@@ -916,13 +921,13 @@ public class MainActivity extends AppCompatActivity {
     private void navigateToPreviousLive() {
         currentLiveIndex = (currentLiveIndex - 1 + liveUrls.length) % liveUrls.length;
         loadLiveUrl();
-        saveCurrentLiveIndex(); // 保存当前位置
+        saveCurrentLiveIndex();
     }
 
     private void navigateToNextLive() {
         currentLiveIndex = (currentLiveIndex + 1) % liveUrls.length;
         loadLiveUrl();
-        saveCurrentLiveIndex(); // 保存当前位置
+        saveCurrentLiveIndex();
     }
 
 
