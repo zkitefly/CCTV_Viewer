@@ -22,7 +22,7 @@ jobs:
       run: chmod +x gradlew
     - name: Build with Gradle
       run: |
-        ./gradlew assembleRelease --stacktrace
+        ./gradlew build --stacktrace
         tree
       
     - uses: actions/upload-artifact@v1
