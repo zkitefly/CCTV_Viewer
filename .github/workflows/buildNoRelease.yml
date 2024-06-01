@@ -21,7 +21,9 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
     - name: Build with Gradle
-      run: ./gradlew assembleRelease --stacktrace
+      run: |
+        ./gradlew assembleRelease --stacktrace
+        tree
       
     - uses: actions/upload-artifact@v1
       with:
