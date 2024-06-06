@@ -214,11 +214,6 @@ public class MainActivity extends AppCompatActivity {
         // 加载上次保存的位置
         loadLastLiveIndex();
 
-        String webViewVersion = WebView.getCurrentWebViewPackage().versionName;
-        if (webViewVersion != null && !webViewVersion.isEmpty()) {
-            CoreText.setText("当前程序运行在系统WebView上，版本号：" + webViewVersion);
-        }
-        
         // X5内核代码
         copyAssets(this, "045738_x5.tbs.apk", "/data/user/0/com.eanyatonic.cctvViewer/app_tbs/045738_x5.tbs.apk");
 
@@ -249,6 +244,27 @@ public class MainActivity extends AppCompatActivity {
 
         // 启用 JavaScript 自动点击功能
         webSettings.setJavaScriptCanOpenWindowsAutomatically(true);
+
+        // 启用系统 WebView 黑夜模式
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) { // Android 10+
+            webView.setForceDark(WebView.FORCE_DARK_ON);
+        } else {
+            String nightModeCSS = "body { background-color: #404040; color: #808080; }";
+            String js = "javascript:(function() {" +
+                        "var style = document.createElement('style');" +
+                        "style.type = 'text/css';" +
+                        "style.innerHTML = '" + nightModeCSS + "';" +
+                        "document.head.appendChild(style);" +
+                        "})()";
+            webSettings.evaluateJavascript(js, null);
+        }
+        
+        // 启用 X5 黑夜模式
+        if (canLoadX5) {
+            webView.getSettingsExtension().setDayOrNight(false); // false 表示夜间模式，true 表示日间模式
+            webView.setBackgroundColor("#404040"); // 
+        }
+
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             // X5内核代码
