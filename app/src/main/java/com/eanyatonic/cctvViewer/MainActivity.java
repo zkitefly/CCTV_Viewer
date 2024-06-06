@@ -182,6 +182,9 @@ public class MainActivity extends AppCompatActivity {
         // 初始化 WebView
         webView = findViewById(R.id.webView);
 
+        // 初始化 X5
+        com.tencent.smtt.sdk.WebView tbsWebView = findViewById(R.id.tbs_webview);
+
         // 初始化显示正在输入的数字的 TextView
         inputTextView = findViewById(R.id.inputTextView);
 
@@ -237,6 +240,12 @@ public class MainActivity extends AppCompatActivity {
         map.put(TbsCoreSettings.TBS_SETTINGS_USE_DEXLOADER_SERVICE, true);
         QbSdk.initTbsSettings(map);
 
+        // 配置 X5 设置
+        com.tencent.smtt.sdk.WebSettings tbsWebSettings = tbsWebView.getSettings();
+        tbsWebSettings.setLoadsImagesAutomatically(false); // 禁用自动加载图片
+        tbsWebSettings.setBlockNetworkImage(true); // 禁用网络图片加载
+        tbsWebSettings.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36");
+        tbsWebView.getSettingsExtension().setDayOrNight(true);
 
         // 配置 WebView 设置
         WebSettings webSettings = webView.getSettings();
