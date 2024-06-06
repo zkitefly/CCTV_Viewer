@@ -245,6 +245,9 @@ public class MainActivity extends AppCompatActivity {
         // 启用 JavaScript 自动点击功能
         webSettings.setJavaScriptCanOpenWindowsAutomatically(true);
 
+        // 启用缓存
+        webSettings.setCacheMode(WebSettings.LOAD_DEFAULT);
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             // X5内核代码
             webSettings.setMixedContentMode(com.tencent.smtt.sdk.WebSettings.LOAD_NORMAL);
