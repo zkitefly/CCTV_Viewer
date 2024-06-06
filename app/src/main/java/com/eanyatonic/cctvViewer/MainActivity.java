@@ -183,7 +183,7 @@ public class MainActivity extends AppCompatActivity {
         webView = findViewById(R.id.webView);
 
         // 初始化 X5
-        com.tencent.smtt.sdk.WebView tbsWebView = findViewById(R.id.tbs_webview);
+        // com.tencent.smtt.sdk.WebView tbsWebView = findViewById(R.id.tbs_webview);
 
         // 初始化显示正在输入的数字的 TextView
         inputTextView = findViewById(R.id.inputTextView);
