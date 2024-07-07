@@ -517,7 +517,7 @@ public class MainActivity extends AppCompatActivity {
                             menuOverlaySelectedIndex++;
                         }
                     }
-                    menuOverlay.getChildAt(menuOvearlaySelectedIndex).requestFocus();
+                    menuOverlay.getChildAt(menuOverlaySelectedIndex).requestFocus();
                     return true;
                 } else if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_CENTER || event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
                     // 中间键,执行按钮操作
