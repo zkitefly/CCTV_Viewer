@@ -541,7 +541,6 @@ public class MainActivity extends AppCompatActivity {
                                             }
                                         """;
                                 webView.evaluateJavascript(scriptPause, null);
-                            }
                             showMenuOverlay();
                             break;
                         case 2:
