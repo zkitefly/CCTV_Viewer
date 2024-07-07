@@ -247,6 +247,8 @@ public class MainActivity extends AppCompatActivity {
         webSettings.setJavaScriptEnabled(true);
         webSettings.setDomStorageEnabled(true);
         webSettings.setDatabaseEnabled(true);
+        webSettings.setMediaPlaybackRequiresUserGesture(false);
+        
         webSettings.setLoadsImagesAutomatically(false); // 禁用自动加载图片
         webSettings.setBlockNetworkImage(true); // 禁用网络图片加载
         webSettings.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36");
@@ -515,7 +517,7 @@ public class MainActivity extends AppCompatActivity {
                             menuOverlaySelectedIndex++;
                         }
                     }
-                    menuOverlay.getChildAt(menuOverlaySelectedIndex).requestFocus();
+                    menuOverlay.getChildAt(menuOvearlaySelectedIndex).requestFocus();
                     return true;
                 } else if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_CENTER || event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
                     // 中间键,执行按钮操作
@@ -526,17 +528,17 @@ public class MainActivity extends AppCompatActivity {
                             showMenuOverlay();
                             break;
                         case 1:
-                            // 播放
-                            if(currentLiveIndex <= 19){
-                                simulateTouch(webView, 0.5f, 0.5f);
-                            } else if (currentLiveIndex <= 40) {
+                            // 高清
                                 String scriptPause =
                                         """
-                                        try{
-                                        document.querySelector('.play.play2').click();
-                                        } catch(e) {
-                                        document.querySelector('.play.play1').click();
-                                        }
+                                        console.log('设置分辨率');
+                                        var elem = document.querySelector('#resolution_item_720_player');
+                                        try {
+                                            elem.click();
+                                            }
+                                        catch (error) {
+                                            clearInterval(interval);
+                                            }
                                         """;
                                 webView.evaluateJavascript(scriptPause, null);
                             }
