@@ -340,7 +340,7 @@ public class MainActivity extends AppCompatActivity {
                                         await sleep(50);
                                                     
                                         console.log('点击全屏按钮');
-                                        var fullscreenBtn = document.querySelector('#player_pagefullscreen_yes_player');
+                                        var fullscreenBtn = document.querySelector('#player_fullscreen_yes_player');
                                         fullscreenBtn.click();
                                         
                                         // 休眠 50 毫秒
@@ -547,7 +547,7 @@ public class MainActivity extends AppCompatActivity {
                             String script1 =
                                     """   
                                     console.log('点击全屏按钮');
-                                    document.querySelector('#player_pagefullscreen_yes_player').click();
+                                    document.querySelector('#player_fullscreen_yes_player').click();
                                     """;
 
                             String script2 =
